@@ -5,8 +5,6 @@ import (
 	"runtime"
 )
 
-//var a = []string{"GCSys"}
-
 func GCSys(memStats *runtime.MemStats) string {
 	return utils.MakeStatStringGauge("GCSys", float64(memStats.GCSys))
 }

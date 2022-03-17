@@ -64,6 +64,22 @@ func sendStats() {
 
 	BuckHashSys := metrics.BuckHashSys(&statData.memStats)
 	sendStat(BuckHashSys)
+
+	Frees := metrics.Frees(&statData.memStats)
+	sendStat(Frees)
+
+	GCSys := metrics.GCSys(&statData.memStats)
+	sendStat(GCSys)
+
+	GCCPUFraction := metrics.GCSys(&statData.memStats)
+	sendStat(GCCPUFraction)
+
+	HeapAlloc := metrics.HeapAlloc(&statData.memStats)
+	sendStat(HeapAlloc)
+
+	HeapIdle := metrics.HeapIdle(&statData.memStats)
+	sendStat(HeapIdle)
+
 }
 
 func RunCollectStats() {
