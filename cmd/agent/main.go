@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/DmitryKhitrin/alerting-service/internal/agent/metrics/alloc"
+	"github.com/DmitryKhitrin/alerting-service/internal/agent/metrics"
 	"log"
+	"math/rand"
 	"net/http"
 	"runtime"
 	"sync"
@@ -12,11 +13,12 @@ import (
 
 const (
 	pollInterval   = 2 * time.Second
-	reportInterval = 2 * time.Second
+	reportInterval = 10 * time.Second
 )
 
 const (
-	serverPath  = "http://localhost:8080"
+	port        = 8080
+	serverPath  = "http://localhost" + string(port)
 	contentType = "text/plain"
 )
 
@@ -32,7 +34,7 @@ var statData StatData
 func sendStat(statString string) {
 	resp, err := http.Post(serverPath+statString, contentType, nil)
 	fmt.Println(statString)
-	//defer resp.Body.Close()
+	defer resp.Body.Close()
 
 	fmt.Println(resp, err)
 	if err != nil {
@@ -50,15 +52,18 @@ func collectStats() {
 	runtime.ReadMemStats(&memStats)
 
 	statData.mu.Lock()
+	statData.RandomValue = rand.Int()
 	statData.PollCount++
-	statData.RandomValue = 12
 	statData.memStats = memStats
 	statData.mu.Unlock()
 }
 
 func sendStats() {
-	Alloc := alloc.Get(statData.memStats)
+	Alloc := metrics.Alloc(&statData.memStats)
 	sendStat(Alloc)
+
+	BuckHashSys := metrics.BuckHashSys(&statData.memStats)
+	sendStat(BuckHashSys)
 }
 
 func RunCollectStats() {
