@@ -3,13 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/DmitryKhitrin/alerting-service/internal/agent/metrics"
+	"github.com/DmitryKhitrin/alerting-service/internal/agent/scheduller"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
-	"sync"
 	"syscall"
 	"time"
 )
@@ -24,23 +23,18 @@ const (
 	contentType = "text/plain"
 )
 
-type StatData struct {
-	mu          sync.Mutex
-	memStats    runtime.MemStats
-	PollCount   int64
-	RandomValue int64
-}
-
-var statData StatData
-
 func sendStat(statString string) {
 	resp, err := http.Post(serverPath+statString, contentType, nil)
-
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	defer resp.Body.Close()
+
+	err = resp.Body.Close()
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		log.Printf("Request error with %s, http status %d", statString, resp.StatusCode)
@@ -50,124 +44,32 @@ func sendStat(statString string) {
 func collectStats() {
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
-
-	statData.mu.Lock()
-	statData.RandomValue = rand.Int63()
-	statData.PollCount++
-	statData.memStats = memStats
-	statData.mu.Unlock()
 }
 
 func sendStats() {
-	Alloc := metrics.Alloc(&statData.memStats)
-	sendStat(Alloc)
 
-	BuckHashSys := metrics.BuckHashSys(&statData.memStats)
-	sendStat(BuckHashSys)
+	storedMetrics := metrics.CollectGauge()
+	for _, metric := range storedMetrics {
+		sendStat(metric.GetValue())
+	}
 
-	Frees := metrics.Frees(&statData.memStats)
-	sendStat(Frees)
-
-	GCSys := metrics.GCSys(&statData.memStats)
-	sendStat(GCSys)
-
-	GCCPUFraction := metrics.GCSys(&statData.memStats)
-	sendStat(GCCPUFraction)
-
-	HeapAlloc := metrics.HeapAlloc(&statData.memStats)
-	sendStat(HeapAlloc)
-
-	HeapIdle := metrics.HeapIdle(&statData.memStats)
-	sendStat(HeapIdle)
-
-	HeapInuse := metrics.HeapInuse(&statData.memStats)
-	sendStat(HeapInuse)
-
-	HeapObjects := metrics.HeapObjects(&statData.memStats)
-	sendStat(HeapObjects)
-
-	HeapReleased := metrics.HeapReleased(&statData.memStats)
-	sendStat(HeapReleased)
-
-	HeapSys := metrics.HeapSys(&statData.memStats)
-	sendStat(HeapSys)
-
-	LastGC := metrics.LastGC(&statData.memStats)
-	sendStat(LastGC)
-
-	Lookups := metrics.Lookups(&statData.memStats)
-	sendStat(Lookups)
-
-	MSpanSys := metrics.MSpanSys(&statData.memStats)
-	sendStat(MSpanSys)
-
-	MSpanInuse := metrics.MSpanInuse(&statData.memStats)
-	sendStat(MSpanInuse)
-
-	Malloc := metrics.Mallocs(&statData.memStats)
-	sendStat(Malloc)
-
-	MCacheSys := metrics.MCacheSys(&statData.memStats)
-	sendStat(MCacheSys)
-
-	MCacheInuse := metrics.MCacheInuse(&statData.memStats)
-	sendStat(MCacheInuse)
-
-	NextGC := metrics.NextGC(&statData.memStats)
-	sendStat(NextGC)
-
-	NumForcedGC := metrics.NumForcedGC(&statData.memStats)
-	sendStat(NumForcedGC)
-
-	NumGC := metrics.NumGC(&statData.memStats)
-	sendStat(NumGC)
-
-	OtherSys := metrics.OtherSys(&statData.memStats)
-	sendStat(OtherSys)
-
-	PauseTotalNs := metrics.PauseTotalNs(&statData.memStats)
-	sendStat(PauseTotalNs)
-
-	StackInuse := metrics.StackInuse(&statData.memStats)
-	sendStat(StackInuse)
-
-	StackSys := metrics.StackSys(&statData.memStats)
-	sendStat(StackSys)
-
-	Sys := metrics.Sys(&statData.memStats)
-	sendStat(Sys)
-
-	TotalAlloc := metrics.TotalAlloc(&statData.memStats)
-	sendStat(TotalAlloc)
-
-	PullCount := metrics.PullCount(statData.PollCount)
-	sendStat(PullCount)
-
-	RandomValue := metrics.RandomValue(statData.RandomValue)
-	sendStat(RandomValue)
+	storedLocalMetrics := metrics.CollectCounter()
+	for _, localMetric := range storedLocalMetrics {
+		sendStat(localMetric.GetValue())
+	}
 }
 
 func RunCollectStats() {
-	ticker := time.NewTicker(pollInterval)
-
-	for {
-		<-ticker.C
-		collectStats()
-	}
+	scheduller.Schedule(collectStats, pollInterval)
 }
 
 func RunSendStats() {
-	ticker := time.NewTicker(reportInterval)
-
-	for {
-		<-ticker.C
-		sendStats()
-	}
+	scheduller.Schedule(sendStats, reportInterval)
 }
 
 func registerSignals() {
 	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	signal.Notify(sigs, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	done := make(chan bool, 1)
 	go func() {
 		sig := <-sigs
