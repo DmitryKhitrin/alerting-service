@@ -75,7 +75,7 @@ func registerCancelSignals() {
 }
 
 func main() {
-	registerCancelSignals()
 	go RunCollectStats()
-	RunSendStats()
+	go RunSendStats()
+	registerCancelSignals()
 }
