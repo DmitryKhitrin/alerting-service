@@ -16,12 +16,11 @@ import (
 
 const (
 	pollInterval   = 2 * time.Second
-	reportInterval = 10 * time.Second
+	reportInterval = 2 * time.Second
 )
 
 const (
-	port        = 8080
-	serverPath  = "http://localhost" + string(port)
+	serverPath  = "http://localhost:8080"
 	contentType = "text/plain"
 )
 
@@ -36,10 +35,7 @@ var statData StatData
 
 func sendStat(statString string) {
 	resp, err := http.Post(serverPath+statString, contentType, nil)
-	fmt.Println(statString)
-	defer resp.Body.Close()
 
-	fmt.Println(resp, err)
 	if err != nil {
 		fmt.Println(err)
 		return
