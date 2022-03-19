@@ -80,6 +80,66 @@ func sendStats() {
 	HeapIdle := metrics.HeapIdle(&statData.memStats)
 	sendStat(HeapIdle)
 
+	HeapInuse := metrics.HeapInuse(&statData.memStats)
+	sendStat(HeapInuse)
+
+	HeapObjects := metrics.HeapObjects(&statData.memStats)
+	sendStat(HeapObjects)
+
+	HeapReleased := metrics.HeapReleased(&statData.memStats)
+	sendStat(HeapReleased)
+
+	HeapSys := metrics.HeapSys(&statData.memStats)
+	sendStat(HeapSys)
+
+	LastGC := metrics.LastGC(&statData.memStats)
+	sendStat(LastGC)
+
+	Lookups := metrics.Lookups(&statData.memStats)
+	sendStat(Lookups)
+
+	MSpanSys := metrics.MSpanSys(&statData.memStats)
+	sendStat(MSpanSys)
+
+	MSpanInuse := metrics.MSpanInuse(&statData.memStats)
+	sendStat(MSpanInuse)
+
+	Malloc := metrics.Mallocs(&statData.memStats)
+	sendStat(Malloc)
+
+	MCacheSys := metrics.MCacheSys(&statData.memStats)
+	sendStat(MCacheSys)
+
+	MCacheInuse := metrics.MCacheInuse(&statData.memStats)
+	sendStat(MCacheInuse)
+
+	NextGC := metrics.NextGC(&statData.memStats)
+	sendStat(NextGC)
+
+	NumForcedGC := metrics.NumForcedGC(&statData.memStats)
+	sendStat(NumForcedGC)
+
+	NumGC := metrics.NumGC(&statData.memStats)
+	sendStat(NumGC)
+
+	OtherSys := metrics.OtherSys(&statData.memStats)
+	sendStat(OtherSys)
+
+	PauseTotalNs := metrics.PauseTotalNs(&statData.memStats)
+	sendStat(PauseTotalNs)
+
+	StackInuse := metrics.StackInuse(&statData.memStats)
+	sendStat(StackInuse)
+
+	StackSys := metrics.StackSys(&statData.memStats)
+	sendStat(StackSys)
+
+	Sys := metrics.Sys(&statData.memStats)
+	sendStat(Sys)
+
+	TotalAlloc := metrics.TotalAlloc(&statData.memStats)
+	sendStat(TotalAlloc)
+
 }
 
 func RunCollectStats() {
