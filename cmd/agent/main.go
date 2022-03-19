@@ -16,7 +16,7 @@ import (
 
 const (
 	pollInterval   = 2 * time.Second
-	reportInterval = 2 * time.Second
+	reportInterval = 10 * time.Second
 )
 
 const (
@@ -35,6 +35,7 @@ var statData StatData
 
 func sendStat(statString string) {
 	resp, err := http.Post(serverPath+statString, contentType, nil)
+	defer resp.Body.Close()
 
 	if err != nil {
 		fmt.Println(err)
