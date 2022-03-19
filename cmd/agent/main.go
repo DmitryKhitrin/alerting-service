@@ -35,12 +35,12 @@ var statData StatData
 
 func sendStat(statString string) {
 	resp, err := http.Post(serverPath+statString, contentType, nil)
-	defer resp.Body.Close()
 
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		log.Printf("Request error with %s, http status %d", statString, resp.StatusCode)
