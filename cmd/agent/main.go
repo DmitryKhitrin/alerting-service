@@ -67,20 +67,15 @@ func RunSendStats() {
 	scheduller.Schedule(sendStats, reportInterval)
 }
 
-func registerSignals() {
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-	done := make(chan bool, 1)
-	go func() {
-		sig := <-sigs
-		fmt.Println()
-		fmt.Println(sig)
-		done <- true
-	}()
+func registerCancelSignals() {
+	cancelSignal := make(chan os.Signal, 1)
+	signal.Notify(cancelSignal, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	<-cancelSignal
+	os.Exit(1)
 }
 
 func main() {
-	registerSignals()
+	registerCancelSignals()
 	go RunCollectStats()
 	RunSendStats()
 }
