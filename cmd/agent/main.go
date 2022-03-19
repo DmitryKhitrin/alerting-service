@@ -6,8 +6,11 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
+	"os/signal"
 	"runtime"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -26,7 +29,7 @@ type StatData struct {
 	mu          sync.Mutex
 	memStats    runtime.MemStats
 	PollCount   int64
-	RandomValue int
+	RandomValue int64
 }
 
 var statData StatData
@@ -52,7 +55,7 @@ func collectStats() {
 	runtime.ReadMemStats(&memStats)
 
 	statData.mu.Lock()
-	statData.RandomValue = rand.Int()
+	statData.RandomValue = rand.Int63()
 	statData.PollCount++
 	statData.memStats = memStats
 	statData.mu.Unlock()
@@ -140,6 +143,11 @@ func sendStats() {
 	TotalAlloc := metrics.TotalAlloc(&statData.memStats)
 	sendStat(TotalAlloc)
 
+	PullCount := metrics.PullCount(statData.PollCount)
+	sendStat(PullCount)
+
+	RandomValue := metrics.RandomValue(statData.RandomValue)
+	sendStat(RandomValue)
 }
 
 func RunCollectStats() {
@@ -160,7 +168,20 @@ func RunSendStats() {
 	}
 }
 
+func registerSignals() {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	done := make(chan bool, 1)
+	go func() {
+		sig := <-sigs
+		fmt.Println()
+		fmt.Println(sig)
+		done <- true
+	}()
+}
+
 func main() {
+	registerSignals()
 	go RunCollectStats()
 	RunSendStats()
 }
