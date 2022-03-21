@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/handlers"
 	"log"
 	"net/http"
@@ -22,5 +23,6 @@ func LaunchServer() {
 		Addr:    port,
 		Handler: getRouter(),
 	}
+	fmt.Println("Starting on port:", port)
 	log.Fatal(server.ListenAndServe())
 }

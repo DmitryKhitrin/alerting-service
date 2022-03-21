@@ -12,6 +12,7 @@ const CounterPath = "/update/counter/"
 
 func CounterHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
+		http.Error(w, "", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -21,8 +22,10 @@ func CounterHandler(w http.ResponseWriter, r *http.Request) {
 			Name:  params.Name,
 			Value: value,
 		})
+		w.WriteHeader(http.StatusOK)
 	} else {
 		log.Println(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
 }
