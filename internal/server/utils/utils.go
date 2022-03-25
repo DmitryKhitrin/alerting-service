@@ -1,6 +1,9 @@
 package utils
 
-import "strings"
+import (
+	"errors"
+	"strings"
+)
 
 const (
 	NameIndex  = 3
@@ -12,9 +15,12 @@ type MetricParams struct {
 	Value string
 }
 
-func ParseUrl(path string) MetricParams {
+func ParseURL(path string) (MetricParams, error) {
 	name := strings.Split(path, "/")[NameIndex]
-	value := strings.Split(path, "/")[ValueIndex]
 
-	return MetricParams{name, value}
+	if len(strings.Split(path, "/")) > ValueIndex {
+		value := strings.Split(path, "/")[ValueIndex]
+		return MetricParams{name, value}, nil
+	}
+	return MetricParams{name, ""}, errors.New("Bad value")
 }
