@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -22,5 +23,6 @@ func ParseURL(path string) (MetricParams, error) {
 		value := strings.Split(path, "/")[ValueIndex]
 		return MetricParams{name, value}, nil
 	}
-	return MetricParams{name, ""}, errors.New("Bad value")
+
+	return MetricParams{name, ""}, errors.New(fmt.Sprintf("parsing url error %s", path))
 }
