@@ -41,7 +41,7 @@ func PostMetricHandler(w http.ResponseWriter, r *http.Request, metricType string
 
 	if errors != nil {
 		log.Println(err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, errors.Error(), http.StatusBadRequest)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
