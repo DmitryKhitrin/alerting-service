@@ -15,14 +15,14 @@ const (
 
 func getRouter() *http.ServeMux {
 
-	storage := repositories.GetHashStorageRepository()
+	repository := repositories.GetHashStorageRepository()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/update/gauge/", func(writer http.ResponseWriter, request *http.Request) {
-		service.GaugeHandler(writer, request, storage)
+		service.PostMetricHandler(writer, request, service.Gauge, repository)
 	})
 	mux.HandleFunc("/update/counter/", func(writer http.ResponseWriter, request *http.Request) {
-		service.CounterHandler(writer, request, storage)
+		service.PostMetricHandler(writer, request, service.Counter, repository)
 	})
 	mux.HandleFunc("/update/counter", handlers.NotImplemented)
 	mux.HandleFunc("/update/gauge", handlers.NotImplemented)

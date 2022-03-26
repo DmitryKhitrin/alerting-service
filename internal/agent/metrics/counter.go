@@ -21,7 +21,7 @@ func (g Counter) GetValue() string {
 
 var localMetrics LocalMetrics
 
-func CollectCounter() []Counter {
+func GetCounterMetrics() []Counter {
 	localMetrics.PollCount++
 	localMetrics.RandomValue = rand.Int63()
 
