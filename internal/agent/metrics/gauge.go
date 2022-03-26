@@ -2,7 +2,6 @@ package metrics
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 	"runtime"
 	"time"
@@ -17,9 +16,8 @@ func (g Gauge) GetValue() string {
 	return fmt.Sprintf("/update/gauge/%s/%G", g.name, g.value)
 }
 
-func CollectGauge() []Gauge {
+func GetGaugeMetrics() []Gauge {
 	var rtm runtime.MemStats
-	log.Println("ticker CollectRuntimeMetrics")
 	runtime.ReadMemStats(&rtm)
 	rand.Seed(time.Now().Unix())
 	Metrics := []Gauge{
