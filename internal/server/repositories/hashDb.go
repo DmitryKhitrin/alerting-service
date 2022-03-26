@@ -5,33 +5,33 @@ import (
 	"sync"
 )
 
-type HashMetricsRepository struct {
+type HashRepository struct {
 	gauge   map[string]float64
 	counter map[string]int64
 }
 
-var hashStorage = HashMetricsRepository{
+var hashRepository = HashRepository{
 	gauge:   make(map[string]float64),
 	counter: make(map[string]int64),
 }
 var storageMutex = &sync.RWMutex{}
 
-func (s *HashMetricsRepository) SetGauge(name string, value float64) {
+func (s *HashRepository) SetGauge(name string, value float64) {
 	storageMutex.Lock()
-	hashStorage.gauge[name] = value
+	hashRepository.gauge[name] = value
 	storageMutex.Unlock()
 }
 
-func (s *HashMetricsRepository) SetCounter(name string, value int64) {
+func (s *HashRepository) SetCounter(name string, value int64) {
 	storageMutex.Lock()
-	if val, ok := hashStorage.counter[name]; ok {
-		hashStorage.counter[name] = val + value
+	if val, ok := hashRepository.counter[name]; ok {
+		hashRepository.counter[name] = val + value
 	} else {
-		hashStorage.counter[name] = value
+		hashRepository.counter[name] = value
 	}
 	storageMutex.Unlock()
 }
 
 func GetHashStorageRepository() service.MetricsRepository {
-	return &hashStorage
+	return &hashRepository
 }

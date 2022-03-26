@@ -30,7 +30,7 @@ func PostMetricHandler(w http.ResponseWriter, r *http.Request, metricType string
 		return
 	}
 
-	var errors error
+	var errors error = nil
 
 	switch metricType {
 	case Gauge:

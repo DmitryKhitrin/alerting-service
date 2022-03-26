@@ -12,7 +12,7 @@ const (
 )
 
 func request(statString string) {
-	resp, err := http.Post(serverPath+statString, contentType, nil)
+	resp, err := http.Post(serverPath+"/update/counter/", contentType, nil)
 	if err != nil {
 		fmt.Println(err)
 		return

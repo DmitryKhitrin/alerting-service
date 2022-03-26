@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 )
@@ -24,5 +23,5 @@ func ParseURL(path string) (MetricParams, error) {
 		return MetricParams{name, value}, nil
 	}
 
-	return MetricParams{name, ""}, errors.New(fmt.Sprintf("parsing url error %s", path))
+	return MetricParams{name, ""}, fmt.Errorf("parsing url error %s", path)
 }
