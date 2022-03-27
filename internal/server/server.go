@@ -1,10 +1,11 @@
 package server
 
 import (
-	"fmt"
-	"github.com/DmitryKhitrin/alerting-service/internal/server/handlers"
+	"context"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/repositories"
-	"github.com/DmitryKhitrin/alerting-service/internal/server/service"
+	"github.com/DmitryKhitrin/alerting-service/internal/server/service/metrics"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"log"
 	"net/http"
 )
@@ -13,29 +14,29 @@ const (
 	port = ":8080"
 )
 
-func getRouter() *http.ServeMux {
+func MetricCtx(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), "MetricsCtx", &metrics.Ctx{
+			Storage: repositories.GetHashStorageRepository(),
+		})
+		next.ServeHTTP(w, r.WithContext(ctx))
 
-	repository := repositories.GetHashStorageRepository()
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("/update/gauge/", func(writer http.ResponseWriter, request *http.Request) {
-		service.PostMetricHandler(writer, request, service.Gauge, repository)
 	})
-	mux.HandleFunc("/update/counter/", func(writer http.ResponseWriter, request *http.Request) {
-		service.PostMetricHandler(writer, request, service.Counter, repository)
-	})
-	mux.HandleFunc("/update/counter", handlers.NotImplemented)
-	mux.HandleFunc("/update/gauge", handlers.NotImplemented)
-	mux.HandleFunc("/update/", handlers.NotImplemented)
+}
 
-	return mux
+func getRouter() *chi.Mux {
+
+	router := chi.NewRouter()
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+
+	router.Route("/update", func(r chi.Router) {
+		r.Use(MetricCtx)
+		r.Post("/{type}/{name}/{value}", metrics.PostMetricHandler)
+	})
+	return router
 }
 
 func LaunchServer() {
-	server := &http.Server{
-		Addr:    port,
-		Handler: getRouter(),
-	}
-	fmt.Println("Starting on port:", port)
-	log.Fatal(server.ListenAndServe())
+	log.Fatal(http.ListenAndServe(port, getRouter()))
 }

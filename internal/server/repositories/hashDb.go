@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"github.com/DmitryKhitrin/alerting-service/internal/server/service"
+	"github.com/DmitryKhitrin/alerting-service/internal/server/service/metrics"
 	"sync"
 )
 
@@ -32,6 +32,6 @@ func (s *HashRepository) SetCounter(name string, value int64) {
 	storageMutex.Unlock()
 }
 
-func GetHashStorageRepository() service.MetricsRepository {
+func GetHashStorageRepository() metrics.Repository {
 	return &hashRepository
 }
