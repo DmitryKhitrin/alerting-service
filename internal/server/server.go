@@ -16,7 +16,7 @@ const (
 
 func MetricCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), "MetricsCtx", &metrics.Ctx{
+		ctx := context.WithValue(r.Context(), MetricCtx, &metrics.Ctx{
 			Storage: repositories.GetHashStorageRepository(),
 		})
 		next.ServeHTTP(w, r.WithContext(ctx))

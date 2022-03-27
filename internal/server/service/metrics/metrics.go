@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	Gauge   = "gauge"
-	Counter = "counter"
+	Gauge     = "gauge"
+	Counter   = "counter"
+	MetricCtx = "MetricsCtx"
 )
 
 type Ctx struct {
@@ -22,7 +23,7 @@ type Repository interface {
 
 func PostMetricHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	metricCtx := ctx.Value("MetricsCtx").(*Ctx)
+	metricCtx := ctx.Value(MetricCtx).(*Ctx)
 	metric := chi.URLParam(r, "type")
 	name := chi.URLParam(r, "name")
 	value := chi.URLParam(r, "value")
