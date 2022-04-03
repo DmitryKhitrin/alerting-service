@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/service/metrics"
 	"sync"
 )
@@ -30,6 +31,30 @@ func (s *HashRepository) SetCounter(name string, value int64) {
 		hashRepository.counter[name] = value
 	}
 	storageMutex.Unlock()
+}
+
+func (s *HashRepository) GetGauge(name string) (float64, error) {
+	storageMutex.Lock()
+	value, ok := hashRepository.gauge[name]
+	storageMutex.Unlock()
+	if !ok {
+		return value, errors.New("invalid metric name")
+	}
+	return value, nil
+}
+
+func (s *HashRepository) GetCounter(name string) (int64, error) {
+	storageMutex.Lock()
+	value, ok := hashRepository.counter[name]
+	storageMutex.Unlock()
+	if !ok {
+		return value, errors.New("invalid metric name")
+	}
+	return value, nil
+}
+
+func (s *HashRepository) GetAll() (*map[string]float64, *map[string]int64) {
+	return &hashRepository.gauge, &hashRepository.counter
 }
 
 func GetHashStorageRepository() metrics.Repository {
