@@ -20,10 +20,8 @@ type Ctx struct {
 }
 
 type Repository interface {
-	SetCounter(name string, value int64)
-	SetGauge(name string, value float64)
-	GetCounter(name string) (int64, error)
-	GetGauge(name string) (float64, error)
+	SetValue(name string, value interface{})
+	GetValue(metric string, name string) (interface{}, error)
 	GetAll() (*map[string]float64, *map[string]int64)
 }
 
@@ -39,14 +37,14 @@ func PostMetricHandler(ctx *Ctx, w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "wrong gauge value", http.StatusBadRequest)
 			return
 		}
-		ctx.Storage.SetGauge(name, value)
+		ctx.Storage.SetValue(name, value)
 	case Counter:
 		value, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
 			http.Error(w, "wrong counter value", http.StatusBadRequest)
 			return
 		}
-		ctx.Storage.SetCounter(name, value)
+		ctx.Storage.SetValue(name, value)
 	default:
 		http.Error(w, "invalid metric type", http.StatusNotImplemented)
 		return
@@ -59,18 +57,8 @@ func GetMetricHandler(ctx *Ctx, w http.ResponseWriter, r *http.Request) {
 	name := chi.URLParam(r, "name")
 
 	switch metric {
-	case Gauge:
-		value, err := ctx.Storage.GetGauge(name)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusNotFound)
-			return
-		}
-		_, err = w.Write([]byte(fmt.Sprint(value)))
-		if err != nil {
-			return
-		}
-	case Counter:
-		value, err := ctx.Storage.GetCounter(name)
+	case Gauge, Counter:
+		value, err := ctx.Storage.GetValue(metric, name)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
