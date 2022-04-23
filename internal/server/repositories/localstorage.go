@@ -50,9 +50,7 @@ func (s *LocalStorageRepository) SetValue(name string, value interface{}) {
 }
 
 func (s *LocalStorageRepository) getGauge(name string) (float64, error) {
-	s.mutex.Lock()
 	value, ok := localStorageRepository.gauge[name]
-	s.mutex.Unlock()
 	if !ok {
 		return value, errors.New("invalid metric name")
 	}
@@ -60,9 +58,7 @@ func (s *LocalStorageRepository) getGauge(name string) (float64, error) {
 }
 
 func (s *LocalStorageRepository) getCounter(name string) (int64, error) {
-	s.mutex.Lock()
 	value, ok := localStorageRepository.counter[name]
-	s.mutex.Unlock()
 	if !ok {
 		return value, errors.New("invalid metric name")
 	}
@@ -70,6 +66,8 @@ func (s *LocalStorageRepository) getCounter(name string) (int64, error) {
 }
 
 func (s *LocalStorageRepository) GetValue(metric string, name string) (interface{}, error) {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
 	switch metric {
 	case Gauge:
 		return s.getGauge(name)
