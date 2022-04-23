@@ -3,7 +3,9 @@ package main
 import (
 	"github.com/DmitryKhitrin/alerting-service/internal/agent"
 	"github.com/DmitryKhitrin/alerting-service/internal/agent/scheduller"
-	"github.com/DmitryKhitrin/alerting-service/internal/common"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -23,5 +25,9 @@ func RunSendStats() {
 func main() {
 	go RunCollectStats()
 	go RunSendStats()
-	common.RegisterCancelSignals()
+
+	cancelSignal := make(chan os.Signal, 1)
+	signal.Notify(cancelSignal, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	<-cancelSignal
+	os.Exit(1)
 }

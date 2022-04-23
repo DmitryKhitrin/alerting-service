@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/DmitryKhitrin/alerting-service/internal/common"
 	"github.com/DmitryKhitrin/alerting-service/internal/server"
+	"log"
 )
 
 func main() {
-	server.LaunchServer()
-	common.RegisterCancelSignals()
+	if err := server.LaunchServer(); err != nil {
+		log.Fatalf("%s", err.Error())
+	}
 }

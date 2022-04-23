@@ -62,7 +62,7 @@ func (m MetricsService) GetTemplateWriter() (func(w http.ResponseWriter) error, 
 	indexTemplate := template.Must(template.New("").Parse(string(indexPage)))
 
 	if err != nil {
-		indexPage, err = os.ReadFile("index.html")
+		_, err = os.ReadFile("index.html")
 		if err != nil {
 			return nil, err
 		}
