@@ -13,6 +13,7 @@ func RegisterHTTPEndpoints(router *chi.Mux, s metrics.Service) {
 	router.Route("/update", func(r chi.Router) {
 		r.Post("/{type}/{name}/{value}", h.PostHandler)
 	})
+	
 	router.Route("/value", func(r chi.Router) {
 		r.Get("/{type}/{name}", h.GetMetricHandler)
 	})

@@ -20,7 +20,7 @@ type App struct {
 }
 
 func NewApp() *App {
-	repository := repositories.NewHashStorageRepository()
+	repository := repositories.NewLocalStorageRepository()
 
 	return &App{
 		metricsService: metricsService.NewMetricsService(repository),

@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"errors"
-	"github.com/DmitryKhitrin/alerting-service/internal/server/metrics"
 	"sync"
 )
 
@@ -11,34 +10,34 @@ const (
 	Counter = "counter"
 )
 
-type LocalStorageMetricRepository struct {
+type LocalStorageRepository struct {
 	mutex   sync.RWMutex
 	gauge   map[string]float64
 	counter map[string]int64
 }
 
-var hashRepository = LocalStorageMetricRepository{
+var localStorageRepository = LocalStorageRepository{
 	gauge:   make(map[string]float64),
 	counter: make(map[string]int64),
 }
 
-func NewHashStorageRepository() metrics.Repository {
-	return &hashRepository
+func NewLocalStorageRepository() *LocalStorageRepository {
+	return &localStorageRepository
 }
 
-func (s *LocalStorageMetricRepository) setGauge(name string, value float64) {
-	hashRepository.gauge[name] = value
+func (s *LocalStorageRepository) setGauge(name string, value float64) {
+	localStorageRepository.gauge[name] = value
 }
 
-func (s *LocalStorageMetricRepository) setCounter(name string, value int64) {
-	if val, ok := hashRepository.counter[name]; ok {
-		hashRepository.counter[name] = val + value
+func (s *LocalStorageRepository) setCounter(name string, value int64) {
+	if val, ok := localStorageRepository.counter[name]; ok {
+		localStorageRepository.counter[name] = val + value
 	} else {
-		hashRepository.counter[name] = value
+		localStorageRepository.counter[name] = value
 	}
 }
 
-func (s *LocalStorageMetricRepository) SetValue(name string, value interface{}) {
+func (s *LocalStorageRepository) SetValue(name string, value interface{}) {
 	s.mutex.Lock()
 	switch v2 := value.(type) {
 	case int64:
@@ -50,9 +49,9 @@ func (s *LocalStorageMetricRepository) SetValue(name string, value interface{}) 
 	s.mutex.Unlock()
 }
 
-func (s *LocalStorageMetricRepository) getGauge(name string) (float64, error) {
+func (s *LocalStorageRepository) getGauge(name string) (float64, error) {
 	s.mutex.Lock()
-	value, ok := hashRepository.gauge[name]
+	value, ok := localStorageRepository.gauge[name]
 	s.mutex.Unlock()
 	if !ok {
 		return value, errors.New("invalid metric name")
@@ -60,9 +59,9 @@ func (s *LocalStorageMetricRepository) getGauge(name string) (float64, error) {
 	return value, nil
 }
 
-func (s *LocalStorageMetricRepository) getCounter(name string) (int64, error) {
+func (s *LocalStorageRepository) getCounter(name string) (int64, error) {
 	s.mutex.Lock()
-	value, ok := hashRepository.counter[name]
+	value, ok := localStorageRepository.counter[name]
 	s.mutex.Unlock()
 	if !ok {
 		return value, errors.New("invalid metric name")
@@ -70,7 +69,7 @@ func (s *LocalStorageMetricRepository) getCounter(name string) (int64, error) {
 	return value, nil
 }
 
-func (s *LocalStorageMetricRepository) GetValue(metric string, name string) (interface{}, error) {
+func (s *LocalStorageRepository) GetValue(metric string, name string) (interface{}, error) {
 	switch metric {
 	case Gauge:
 		return s.getGauge(name)
@@ -81,6 +80,6 @@ func (s *LocalStorageMetricRepository) GetValue(metric string, name string) (int
 	}
 }
 
-func (s *LocalStorageMetricRepository) GetAll() (*map[string]float64, *map[string]int64) {
-	return &hashRepository.gauge, &hashRepository.counter
+func (s *LocalStorageRepository) GetAll() (*map[string]float64, *map[string]int64) {
+	return &localStorageRepository.gauge, &localStorageRepository.counter
 }

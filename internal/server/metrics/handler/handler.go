@@ -19,9 +19,9 @@ type Handler struct {
 	service metrics.Service
 }
 
-func NewHandler(useCase metrics.Service) *Handler {
+func NewHandler(service metrics.Service) *Handler {
 	return &Handler{
-		service: useCase,
+		service: service,
 	}
 }
 
