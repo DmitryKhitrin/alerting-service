@@ -25,11 +25,11 @@ func NewLocalStorageRepository() *LocalStorageRepository {
 	return &localStorageRepository
 }
 
-func (s *LocalStorageRepository) setGauge(name string, value float64) {
+func (s LocalStorageRepository) setGauge(name string, value float64) {
 	localStorageRepository.gauge[name] = value
 }
 
-func (s *LocalStorageRepository) setCounter(name string, value int64) {
+func (s LocalStorageRepository) setCounter(name string, value int64) {
 	if val, ok := localStorageRepository.counter[name]; ok {
 		localStorageRepository.counter[name] = val + value
 	} else {
@@ -37,7 +37,7 @@ func (s *LocalStorageRepository) setCounter(name string, value int64) {
 	}
 }
 
-func (s *LocalStorageRepository) SetValue(name string, value interface{}) {
+func (s LocalStorageRepository) SetValue(name string, value interface{}) {
 	s.mutex.Lock()
 	switch v2 := value.(type) {
 	case int64:
@@ -49,7 +49,7 @@ func (s *LocalStorageRepository) SetValue(name string, value interface{}) {
 	s.mutex.Unlock()
 }
 
-func (s *LocalStorageRepository) getGauge(name string) (float64, error) {
+func (s LocalStorageRepository) getGauge(name string) (float64, error) {
 	s.mutex.Lock()
 	value, ok := localStorageRepository.gauge[name]
 	s.mutex.Unlock()
@@ -59,7 +59,7 @@ func (s *LocalStorageRepository) getGauge(name string) (float64, error) {
 	return value, nil
 }
 
-func (s *LocalStorageRepository) getCounter(name string) (int64, error) {
+func (s LocalStorageRepository) getCounter(name string) (int64, error) {
 	s.mutex.Lock()
 	value, ok := localStorageRepository.counter[name]
 	s.mutex.Unlock()
@@ -69,7 +69,7 @@ func (s *LocalStorageRepository) getCounter(name string) (int64, error) {
 	return value, nil
 }
 
-func (s *LocalStorageRepository) GetValue(metric string, name string) (interface{}, error) {
+func (s LocalStorageRepository) GetValue(metric string, name string) (interface{}, error) {
 	switch metric {
 	case Gauge:
 		return s.getGauge(name)

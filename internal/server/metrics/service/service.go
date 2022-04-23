@@ -2,6 +2,9 @@ package service
 
 import (
 	"github.com/DmitryKhitrin/alerting-service/internal/server/metrics"
+	"html/template"
+	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -53,6 +56,25 @@ func (m MetricsService) GetMetric(metric string, name string) (interface{}, *met
 	}
 }
 
-func (m MetricsService) GetAll() (*map[string]float64, *map[string]int64) {
-	return m.repository.GetAll()
+func (m MetricsService) GetTemplateWriter() (func(w http.ResponseWriter) error, error) {
+	gauge, counter := m.repository.GetAll()
+	indexPage, err := os.ReadFile("internal/server/metrics/static/index.html")
+	indexTemplate := template.Must(template.New("").Parse(string(indexPage)))
+
+	if err != nil {
+		indexPage, err = os.ReadFile("index.html")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	tmp := make(map[string]interface{})
+	tmp[Gauge] = gauge
+	tmp[Counter] = counter
+
+	return func(w http.ResponseWriter) error {
+		err = indexTemplate.Execute(w, tmp)
+		return err
+	}, nil
+
 }

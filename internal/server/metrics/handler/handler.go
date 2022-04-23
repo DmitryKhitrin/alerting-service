@@ -7,12 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"text/template"
-)
-
-const (
-	Gauge   = "gauge"
-	Counter = "counter"
 )
 
 type Handler struct {
@@ -58,21 +52,14 @@ func (h *Handler) GetMetricHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetAllHandler(w http.ResponseWriter, _ *http.Request) {
-	indexPage, err := os.ReadFile("internal/server/metrics/static/index.html")
+	writeTmp, err := h.service.GetTemplateWriter()
+
 	if err != nil {
-		indexPage, err = os.ReadFile("index.html")
-		if err != nil {
-			log.Println(err)
-			os.Exit(1)
-		}
+		log.Println(err)
+		os.Exit(1)
 	}
 
-	indexTemplate := template.Must(template.New("").Parse(string(indexPage)))
-	tmp := make(map[string]interface{})
-	gauge, counter := h.service.GetAll()
-	tmp[Gauge] = gauge
-	tmp[Counter] = counter
-	err = indexTemplate.Execute(w, tmp)
+	err = writeTmp(w)
 	if err != nil {
 		log.Println(err)
 		return
