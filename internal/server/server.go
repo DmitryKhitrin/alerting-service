@@ -1,8 +1,8 @@
 package server
 
 import (
+	"github.com/DmitryKhitrin/alerting-service/internal/server/metricks"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/repositories"
-	"github.com/DmitryKhitrin/alerting-service/internal/server/service/metrics"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"log"
@@ -15,27 +15,19 @@ const (
 
 func getRouter() *chi.Mux {
 
-	ctx := &metrics.Ctx{
-		Storage: repositories.GetHashStorageRepository(),
-	}
+	handler := metricks.NewHandler(repositories.NewHashStorageRepository())
 
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 
-	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		metrics.GetAllHandler(ctx, w, r)
-	})
+	router.Get("/", handler.GetAllHandler)
 
 	router.Route("/update", func(r chi.Router) {
-		r.Post("/{type}/{name}/{value}", func(w http.ResponseWriter, r *http.Request) {
-			metrics.PostMetricHandler(ctx, w, r)
-		})
+		r.Post("/{type}/{name}/{value}", handler.PostHandler)
 	})
 	router.Route("/value", func(r chi.Router) {
-		r.Get("/{type}/{name}", func(w http.ResponseWriter, r *http.Request) {
-			metrics.GetMetricHandler(ctx, w, r)
-		})
+		r.Get("/{type}/{name}", handler.GetMetricHandler)
 	})
 	return router
 }

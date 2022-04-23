@@ -10,10 +10,6 @@ import (
 	"testing"
 )
 
-const (
-	PollCount = 0
-)
-
 func request(t *testing.T, ts *httptest.Server, method string, query string, body string) (*http.Response, string) {
 	req, err := http.NewRequest(method, ts.URL+query, strings.NewReader(body))
 	require.NoError(t, err)
