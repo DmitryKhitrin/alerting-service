@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"errors"
-	"github.com/DmitryKhitrin/alerting-service/internal/server/metricks"
+	"github.com/DmitryKhitrin/alerting-service/internal/server/metrics"
 	"sync"
 )
 
@@ -20,6 +20,10 @@ type LocalStorageMetricRepository struct {
 var hashRepository = LocalStorageMetricRepository{
 	gauge:   make(map[string]float64),
 	counter: make(map[string]int64),
+}
+
+func NewHashStorageRepository() metrics.Repository {
+	return &hashRepository
 }
 
 func (s *LocalStorageMetricRepository) setGauge(name string, value float64) {
@@ -79,8 +83,4 @@ func (s *LocalStorageMetricRepository) GetValue(metric string, name string) (int
 
 func (s *LocalStorageMetricRepository) GetAll() (*map[string]float64, *map[string]int64) {
 	return &hashRepository.gauge, &hashRepository.counter
-}
-
-func NewHashStorageRepository() metricks.MetricksRepository {
-	return &hashRepository
 }

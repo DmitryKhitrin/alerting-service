@@ -1,7 +1,9 @@
 package server
 
 import (
-	"github.com/DmitryKhitrin/alerting-service/internal/server/metricks"
+	"github.com/DmitryKhitrin/alerting-service/internal/server/metrics"
+	metricsHandler "github.com/DmitryKhitrin/alerting-service/internal/server/metrics/handler"
+	metricsService "github.com/DmitryKhitrin/alerting-service/internal/server/metrics/service"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/repositories"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -13,29 +15,33 @@ const (
 	defaultPort = "8080"
 )
 
-func getRouter() *chi.Mux {
+type App struct {
+	metricsService metrics.Service
+}
 
-	handler := metricks.NewHandler(repositories.NewHashStorageRepository())
+func NewApp() *App {
+	repository := repositories.NewHashStorageRepository()
 
+	return &App{
+		metricsService: metricsService.NewMetricsService(repository),
+	}
+}
+
+func getRouter(a *App) *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 
-	router.Get("/", handler.GetAllHandler)
-
-	router.Route("/update", func(r chi.Router) {
-		r.Post("/{type}/{name}/{value}", handler.PostHandler)
-	})
-	router.Route("/value", func(r chi.Router) {
-		r.Get("/{type}/{name}", handler.GetMetricHandler)
-	})
+	metricsHandler.RegisterHTTPEndpoints(router, a.metricsService)
 	return router
 }
 
 func LaunchServer() {
+	app := NewApp()
+
 	svr := &http.Server{
 		Addr:    "localhost" + ":" + defaultPort,
-		Handler: getRouter(),
+		Handler: getRouter(app),
 	}
 	svr.SetKeepAlivesEnabled(false)
 	log.Printf("listening on port " + defaultPort)
