@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <style>
+        table, th, td {
+            border:1px solid black;
+        }
+    </style>
+    <body>
+    <h2>Gauge</h2>
+    <table style="width:100%">
+        <tr>
+            <th>Name</th>
+            <th>Value</th>
+        </tr>
+        {{ range $key, $val :=  .gauge }}
+        <tr>
+            <td>{{$key}}</td>
+            <td>{{$val}}</td>
+        </tr>
+        {{end}}
+    </table>
+    <h2>Counter</h2>
+    <table style="width:100%">
+        <tr>
+            <th>Name</th>
+            <th>Value</th>
+        </tr>
+        {{ range $key, $val :=  .counter }}
+        <tr>
+            <td>{{$key}}</td>
+            <td>{{$val}}</td>
+        </tr>
+        {{end}}
+    </table>
+    </body>
+</html>

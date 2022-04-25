@@ -1,41 +1,65 @@
 package server
 
 import (
-	"fmt"
-	"github.com/DmitryKhitrin/alerting-service/internal/server/handlers"
+	"context"
+	"github.com/DmitryKhitrin/alerting-service/internal/server/metrics"
+	metricsHandler "github.com/DmitryKhitrin/alerting-service/internal/server/metrics/handler"
+	metricsService "github.com/DmitryKhitrin/alerting-service/internal/server/metrics/service"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/repositories"
-	"github.com/DmitryKhitrin/alerting-service/internal/server/service"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"time"
 )
 
 const (
-	port = ":8080"
+	defaultPort = "8080"
 )
 
-func getRouter() *http.ServeMux {
-
-	repository := repositories.GetHashStorageRepository()
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("/update/gauge/", func(writer http.ResponseWriter, request *http.Request) {
-		service.PostMetricHandler(writer, request, service.Gauge, repository)
-	})
-	mux.HandleFunc("/update/counter/", func(writer http.ResponseWriter, request *http.Request) {
-		service.PostMetricHandler(writer, request, service.Counter, repository)
-	})
-	mux.HandleFunc("/update/counter", handlers.NotImplemented)
-	mux.HandleFunc("/update/gauge", handlers.NotImplemented)
-	mux.HandleFunc("/update/", handlers.NotImplemented)
-
-	return mux
+type App struct {
+	metricsService metrics.Service
 }
 
-func LaunchServer() {
-	server := &http.Server{
-		Addr:    port,
-		Handler: getRouter(),
+func NewApp() *App {
+	repository := repositories.NewLocalStorageRepository()
+
+	return &App{
+		metricsService: metricsService.NewMetricsService(repository),
 	}
-	fmt.Println("Starting on port:", port)
-	log.Fatal(server.ListenAndServe())
+}
+
+func getRouter(a *App) *chi.Mux {
+	router := chi.NewRouter()
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+
+	metricsHandler.RegisterHTTPEndpoints(router, a.metricsService)
+	return router
+}
+
+func LaunchServer() error {
+	app := NewApp()
+
+	srv := &http.Server{
+		Addr:    "localhost" + ":" + defaultPort,
+		Handler: getRouter(app),
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Fatalf("Failed to listen and serve: %+v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, os.Interrupt)
+	<-quit
+
+	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdown()
+
+	return srv.Shutdown(ctx)
 }
