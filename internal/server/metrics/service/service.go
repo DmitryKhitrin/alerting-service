@@ -1,16 +1,11 @@
 package service
 
 import (
+	"github.com/DmitryKhitrin/alerting-service/internal/common"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/metrics"
 	"html/template"
 	"net/http"
 	"os"
-	"strconv"
-)
-
-const (
-	Gauge   = "gauge"
-	Counter = "counter"
 )
 
 type MetricsService struct {
@@ -23,37 +18,38 @@ func NewMetricsService(repository metrics.Repository) *MetricsService {
 	}
 }
 
-func (m MetricsService) StoreMetric(metric string, name string, value string) *metrics.Error {
-	switch metric {
-	case Gauge:
-		value, err := strconv.ParseFloat(value, 64)
-		if err != nil {
-			return metrics.NewBadRequestError("wrong gauge value")
-		}
-		m.repository.SetValue(name, value)
-	case Counter:
-		value, err := strconv.ParseInt(value, 10, 64)
-		if err != nil {
-			return metrics.NewBadRequestError("wrong counter value")
-		}
-		m.repository.SetValue(name, value)
+func (m MetricsService) StoreMetric(metric *common.Metrics) *common.Error {
+	switch metric.MType {
+	case common.Gauge:
+		m.repository.SetValue(metric.ID, metric.Value)
+	case common.Counter:
+		m.repository.SetValue(metric.ID, metric.Delta)
 	default:
-		return metrics.NewNotImplementedError("invalid metric type")
+		return common.NewNotImplementedError("invalid metric type")
 	}
 	return nil
 }
 
-func (m MetricsService) GetMetric(metric string, name string) (interface{}, *metrics.Error) {
-	switch metric {
-	case Gauge, Counter:
-		value, err := m.repository.GetValue(metric, name)
+func (m MetricsService) GetMetric(metric *common.Metrics) (interface{}, *common.Error) {
+
+	switch metric.MType {
+	case common.Gauge, common.Counter:
+		value, err := m.repository.GetValue(metric.MType, metric.ID)
 		if err != nil {
-			return nil, metrics.NewNotFoundError("")
+			return nil, common.NewNotFoundError("")
 		}
-		return value, nil
-	default:
-		return nil, metrics.NewBadRequestError("invalid metric type")
+		switch metric.MType {
+		case common.Gauge:
+			val := value.(float64)
+			metric.Value = &val
+			return val, nil
+		case common.Counter:
+			val := value.(int64)
+			metric.Delta = &val
+			return val, nil
+		}
 	}
+	return nil, common.NewBadRequestError("invalid metric type")
 }
 
 func (m MetricsService) GetTemplateWriter() (func(w http.ResponseWriter) error, error) {
@@ -69,8 +65,8 @@ func (m MetricsService) GetTemplateWriter() (func(w http.ResponseWriter) error, 
 	}
 
 	tmp := make(map[string]interface{})
-	tmp[Gauge] = gauge
-	tmp[Counter] = counter
+	tmp[common.Gauge] = gauge
+	tmp[common.Counter] = counter
 
 	return func(w http.ResponseWriter) error {
 		err = indexTemplate.Execute(w, tmp)

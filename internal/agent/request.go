@@ -1,20 +1,28 @@
 package agent
 
 import (
-	"fmt"
+	"bytes"
+	"encoding/json"
+	"github.com/DmitryKhitrin/alerting-service/internal/common"
 	"log"
 	"net/http"
 )
 
 const (
 	serverPath  = "http://localhost:8080"
-	contentType = "text/plain"
+	contentType = "application/json"
 )
 
-func request(statString string) {
-	resp, err := http.Post(serverPath+statString, contentType, nil)
+func request(metric *common.Metrics) {
+	jsonMetric, err := json.Marshal(metric)
 	if err != nil {
-		fmt.Println(err)
+		log.Println("error during marshaling in MetricSend %w", err)
+		return
+	}
+
+	resp, err := http.Post(serverPath+"/update", contentType, bytes.NewBuffer(jsonMetric))
+	if err != nil {
+		log.Println(err)
 		return
 	}
 
@@ -25,6 +33,6 @@ func request(statString string) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("Request error with %s, http status %d", statString, resp.StatusCode)
+		log.Printf("Request error with %s, http status %d", metric.ID, resp.StatusCode)
 	}
 }

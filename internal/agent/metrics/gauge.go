@@ -1,7 +1,7 @@
 package metrics
 
 import (
-	"fmt"
+	"github.com/DmitryKhitrin/alerting-service/internal/common"
 	"math/rand"
 	"runtime"
 	"time"
@@ -12,8 +12,12 @@ type Gauge struct {
 	value float64
 }
 
-func (g Gauge) GetValue() string {
-	return fmt.Sprintf("/update/gauge/%s/%G", g.name, g.value)
+func (g Gauge) GetValue() *common.Metrics {
+	return &common.Metrics{
+		ID:    g.name,
+		MType: common.Gauge,
+		Value: &g.value,
+	}
 }
 
 func GetGaugeMetrics() []Gauge {

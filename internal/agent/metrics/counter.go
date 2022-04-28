@@ -1,7 +1,7 @@
 package metrics
 
 import (
-	"fmt"
+	"github.com/DmitryKhitrin/alerting-service/internal/common"
 	"math/rand"
 )
 
@@ -15,8 +15,12 @@ type Counter struct {
 	value int64
 }
 
-func (g Counter) GetValue() string {
-	return fmt.Sprintf("/update/counter/%s/%d", g.name, g.value)
+func (g Counter) GetValue() *common.Metrics {
+	return &common.Metrics{
+		ID:    g.name,
+		MType: common.Counter,
+		Delta: &g.value,
+	}
 }
 
 var localMetrics LocalMetrics
