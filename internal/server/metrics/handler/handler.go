@@ -22,7 +22,7 @@ func NewHandler(service metrics.Service) *Handler {
 	}
 }
 
-func (h *Handler) PostHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	mType := chi.URLParam(r, "type")
 	name := chi.URLParam(r, "name")
 	value := chi.URLParam(r, "value")
@@ -30,8 +30,6 @@ func (h *Handler) PostHandler(w http.ResponseWriter, r *http.Request) {
 	metricObj := &common.Metrics{}
 
 	err := metricObj.CreateMetric(name, mType, value)
-
-	fmt.Println(*metricObj)
 
 	if err != nil {
 		http.Error(w, err.Text, err.Status)
@@ -48,7 +46,7 @@ func (h *Handler) PostHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *Handler) JSONPostHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) JSONUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
@@ -93,7 +91,7 @@ func (h *Handler) GetMetricHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) JSONGetMetricHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) JSONPostMetricHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {

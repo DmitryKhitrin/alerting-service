@@ -19,8 +19,8 @@ func request(metric *common.Metrics) {
 		log.Println("error during marshaling in MetricSend %w", err)
 		return
 	}
-
-	resp, err := http.Post(serverPath+"/update", contentType, bytes.NewBuffer(jsonMetric))
+	http.Post(serverPath+"/update", contentType, bytes.NewBuffer(jsonMetric))
+	resp, err := http.Post(serverPath+"/value", contentType, bytes.NewBuffer(jsonMetric))
 	if err != nil {
 		log.Println(err)
 		return
