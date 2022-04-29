@@ -21,8 +21,14 @@ func NewMetricsService(repository metrics.Repository) *MetricsService {
 func (m MetricsService) StoreMetric(metric *common.Metrics) *common.Error {
 	switch metric.MType {
 	case common.Gauge:
+		if metric.Value == nil {
+			return common.NewBadRequestError("wrong gauge value")
+		}
 		m.repository.SetValue(metric.ID, metric.Value)
 	case common.Counter:
+		if metric.Delta == nil {
+			return common.NewBadRequestError("wrong gauge value")
+		}
 		m.repository.SetValue(metric.ID, metric.Delta)
 	default:
 		return common.NewNotImplementedError("invalid metric type")

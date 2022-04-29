@@ -57,6 +57,27 @@ func TestMetricServer(t *testing.T) {
 			expected:    want{code: 200},
 		},
 		{
+			description: "200 Success Counter JSON",
+			requestURL:  "/update",
+			method:      http.MethodPost,
+			body:        []byte(`{"id":"Alloc","type":"counter","delta":3459}`),
+			expected:    want{code: 200},
+		},
+		{
+			description: "400 Bad Counter JSON",
+			requestURL:  "/update",
+			method:      http.MethodPost,
+			body:        []byte(`{"id":"Alloc","type":"counter","value":3459}`),
+			expected:    want{code: 400},
+		},
+		{
+			description: "400 Bad Gauge JSON",
+			requestURL:  "/update",
+			method:      http.MethodPost,
+			body:        []byte(`{"id":"Alloc","type":"gauge","delta":3459}`),
+			expected:    want{code: 400},
+		},
+		{
 			description: "200 Success Counter",
 			requestURL:  "/update/counter/PollCount/1",
 			method:      http.MethodPost,
