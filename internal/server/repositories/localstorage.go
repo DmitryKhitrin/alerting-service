@@ -2,12 +2,9 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
+	"github.com/DmitryKhitrin/alerting-service/internal/common"
 	"sync"
-)
-
-const (
-	Gauge   = "gauge"
-	Counter = "counter"
 )
 
 type LocalStorageRepository struct {
@@ -40,12 +37,13 @@ func (s *LocalStorageRepository) setCounter(name string, value int64) {
 func (s *LocalStorageRepository) SetValue(name string, value interface{}) {
 	s.mutex.Lock()
 	switch v2 := value.(type) {
-	case int64:
-		s.setCounter(name, v2)
-	case float64:
-		s.setGauge(name, v2)
+	case *int64:
+		s.setCounter(name, *v2)
+	case *float64:
+		s.setGauge(name, *v2)
 	default:
 	}
+	fmt.Println()
 	s.mutex.Unlock()
 }
 
@@ -69,9 +67,9 @@ func (s *LocalStorageRepository) GetValue(metric string, name string) (interface
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 	switch metric {
-	case Gauge:
+	case common.Gauge:
 		return s.getGauge(name)
-	case Counter:
+	case common.Counter:
 		return s.getCounter(name)
 	default:
 		return "", errors.New("invalid metric type")

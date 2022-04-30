@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/DmitryKhitrin/alerting-service/internal/common"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/metrics"
 	"github.com/go-chi/chi"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -19,12 +22,21 @@ func NewHandler(service metrics.Service) *Handler {
 	}
 }
 
-func (h *Handler) PostHandler(w http.ResponseWriter, r *http.Request) {
-	metric := chi.URLParam(r, "type")
+func (h *Handler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
+	mType := chi.URLParam(r, "type")
 	name := chi.URLParam(r, "name")
 	value := chi.URLParam(r, "value")
 
-	err := h.service.StoreMetric(metric, name, value)
+	metricObj := &common.Metrics{}
+
+	err := metricObj.CreateMetric(name, mType, value)
+
+	if err != nil {
+		http.Error(w, err.Text, err.Status)
+		return
+	}
+
+	err = h.service.StoreMetric(metricObj)
 
 	if err != nil {
 		http.Error(w, err.Text, err.Status)
@@ -34,18 +46,80 @@ func (h *Handler) PostHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (h *Handler) JSONUpdateHandler(w http.ResponseWriter, r *http.Request) {
+	b, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	var metric common.Metrics
+	err = json.Unmarshal(b, &metric)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	serviceErr := h.service.StoreMetric(&metric)
+
+	if serviceErr != nil {
+		http.Error(w, serviceErr.Text, serviceErr.Status)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func (h *Handler) GetMetricHandler(w http.ResponseWriter, r *http.Request) {
-	metric := chi.URLParam(r, "type")
+	mType := chi.URLParam(r, "type")
 	name := chi.URLParam(r, "name")
 
-	value, sErr := h.service.GetMetric(metric, name)
+	metricObj := &common.Metrics{}
+	metricObj.FromNameAndType(name, mType)
+
+	val, sErr := h.service.GetMetric(metricObj)
 
 	if sErr != nil {
 		http.Error(w, sErr.Text, sErr.Status)
 		return
 	}
 
-	_, err := w.Write([]byte(fmt.Sprint(value)))
+	_, err := w.Write([]byte(fmt.Sprint(val)))
+	if err != nil {
+		return
+	}
+}
+
+func (h *Handler) JSONPostMetricHandler(w http.ResponseWriter, r *http.Request) {
+	b, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	var metric common.Metrics
+	err = json.Unmarshal(b, &metric)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	_, sErr := h.service.GetMetric(&metric)
+
+	if sErr != nil {
+		http.Error(w, sErr.Text, sErr.Status)
+		return
+	}
+	data, err := json.Marshal(&metric)
+	if err != nil {
+		log.Println("parsing error")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	_, err = w.Write([]byte(data))
 	if err != nil {
 		return
 	}
