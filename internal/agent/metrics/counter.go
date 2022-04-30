@@ -31,7 +31,6 @@ func GetCounterMetrics() []Counter {
 
 	counter := []Counter{
 		{name: "PollCount", value: localMetrics.PollCount},
-		{name: "RandomValue", value: localMetrics.RandomValue},
 	}
 	return counter
 }
