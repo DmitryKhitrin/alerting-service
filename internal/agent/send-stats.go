@@ -2,15 +2,23 @@ package agent
 
 import "github.com/DmitryKhitrin/alerting-service/internal/agent/metrics"
 
-func SendStats() {
+type StatsSender struct {
+	Request *RequestService
+}
+
+func NewStatsSender(request *RequestService) *StatsSender {
+	return &StatsSender{Request: request}
+}
+
+func (s *StatsSender) Send() {
 
 	storedMetrics := metrics.GetGaugeMetrics()
 	for _, metric := range storedMetrics {
-		request(metric.GetValue())
+		s.Request.request(metric.GetValue())
 	}
 
 	storedLocalMetrics := metrics.GetCounterMetrics()
 	for _, localMetric := range storedLocalMetrics {
-		request(localMetric.GetValue())
+		s.Request.request(localMetric.GetValue())
 	}
 }
