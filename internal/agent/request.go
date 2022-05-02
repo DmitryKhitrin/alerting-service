@@ -9,6 +9,7 @@ import (
 )
 
 const (
+	protocol    = "http"
 	contentType = "application/json"
 )
 
@@ -17,7 +18,7 @@ type RequestService struct {
 }
 
 func NewRequestService(address string) *RequestService {
-	return &RequestService{Address: "https://" + address}
+	return &RequestService{Address: protocol + "://" + address}
 }
 
 func (r *RequestService) request(metric *common.Metrics) {
