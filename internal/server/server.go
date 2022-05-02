@@ -2,10 +2,12 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/metrics"
 	metricsHandler "github.com/DmitryKhitrin/alerting-service/internal/server/metrics/handler"
 	metricsService "github.com/DmitryKhitrin/alerting-service/internal/server/metrics/service"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/repositories"
+	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"log"
@@ -15,9 +17,9 @@ import (
 	"time"
 )
 
-const (
-	defaultPort = "8080"
-)
+type config struct {
+	Address string `env:"ADDRESS" envDefault:"localhost:8080"`
+}
 
 type App struct {
 	metricsService metrics.Service
@@ -43,8 +45,15 @@ func getRouter(a *App) *chi.Mux {
 func LaunchServer() error {
 	app := NewApp()
 
+	cfg := config{}
+	if err := env.Parse(&cfg); err != nil {
+		fmt.Printf("%+v\n", err)
+	}
+
+	fmt.Println(cfg.Address)
+
 	srv := &http.Server{
-		Addr:    "localhost" + ":" + defaultPort,
+		Addr:    cfg.Address,
 		Handler: getRouter(app),
 	}
 

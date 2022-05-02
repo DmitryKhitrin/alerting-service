@@ -9,17 +9,25 @@ import (
 )
 
 const (
-	serverPath  = "http://localhost:8080"
+	protocol    = "http"
 	contentType = "application/json"
 )
 
-func request(metric *common.Metrics) {
+type RequestService struct {
+	Address string
+}
+
+func NewRequestService(address string) *RequestService {
+	return &RequestService{Address: protocol + "://" + address}
+}
+
+func (r *RequestService) request(metric *common.Metrics) {
 	jsonMetric, err := json.Marshal(metric)
 	if err != nil {
 		log.Println("error during marshaling in MetricSend %w", err)
 		return
 	}
-	resp, err := http.Post(serverPath+"/update", contentType, bytes.NewBuffer(jsonMetric))
+	resp, err := http.Post(r.Address+"/update", contentType, bytes.NewBuffer(jsonMetric))
 
 	if err != nil {
 		log.Println(err)
