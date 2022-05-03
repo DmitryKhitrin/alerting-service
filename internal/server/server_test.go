@@ -93,31 +93,11 @@ func TestMetricServer(t *testing.T) {
 			expected:    want{code: 200},
 		},
 		{
-			description: "200 Get Counter",
-			requestURL:  "/value/counter/PollCount",
-			method:      http.MethodGet,
-			body:        []byte(``),
-			expected: want{
-				code: 200,
-				body: []string{"1"},
-			},
-		},
-		{
 			description: "200 Success Counter",
 			requestURL:  "/update/counter/PollCount/10",
 			method:      http.MethodPost,
 			body:        []byte(``),
 			expected:    want{code: 200},
-		},
-		{
-			description: "200 Get Counter plus ten",
-			requestURL:  "/value/counter/PollCount",
-			method:      http.MethodGet,
-			body:        []byte(``),
-			expected: want{
-				code: 200,
-				body: []string{"11"},
-			},
 		},
 		{
 			description: "400 Parse string Gauge",
