@@ -52,7 +52,10 @@ func (l *LocalStorageRepository) SetValue(name string, value interface{}) {
 	l.mutex.Unlock()
 
 	if l.cfg.StoreInterval.Seconds() == 0 {
-		l.SaveToFile()
+		err := l.SaveToFile()
+		if err != nil {
+			fmt.Println("error saving to file", err)
+		}
 	}
 }
 

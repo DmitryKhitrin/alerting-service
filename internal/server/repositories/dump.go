@@ -39,6 +39,11 @@ func (l *LocalStorageRepository) TryRestore() error {
 }
 
 func (l *LocalStorageRepository) SaveToFile() error {
+	if l.cfg.FileName == "" {
+		fmt.Println("trying to store metrics with empty file")
+		return nil
+	}
+
 	file, err := os.Create(l.cfg.FileName)
 	if err != nil {
 		return nil
@@ -56,12 +61,12 @@ func (l *LocalStorageRepository) SaveToFile() error {
 	l.mutex.RLock()
 	err = encoder.Encode(l.repository)
 	l.mutex.RUnlock()
-	return nil
+	return err
 }
 
 func (l *LocalStorageRepository) RunDataDumper() {
 
-	if l.cfg.StoreInterval.Seconds() != 0 {
+	if l.cfg.StoreInterval.Seconds() != 0 && l.cfg.FileName != "" {
 
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 		defer stop()
