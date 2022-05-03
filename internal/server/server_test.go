@@ -2,6 +2,9 @@ package server
 
 import (
 	"bytes"
+	"fmt"
+	"github.com/DmitryKhitrin/alerting-service/internal/server/config"
+	"github.com/caarlos0/env/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
@@ -28,8 +31,13 @@ func TestMetricServer(t *testing.T) {
 		code int
 		body []string
 	}
+
+	cfg := config.Config{}
+	if err := env.Parse(&cfg); err != nil {
+		fmt.Printf("%+v\n", err)
+	}
 	// Mock App in future
-	app := NewApp()
+	app := NewApp(&cfg)
 	r := getRouter(app)
 
 	server := httptest.NewServer(r)
