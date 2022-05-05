@@ -13,8 +13,11 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"log"
 	"net/http"
+	"os"
 	"os/signal"
+	"sync"
 	"syscall"
+	"time"
 )
 
 type App struct {
@@ -47,27 +50,32 @@ func LaunchServer() error {
 
 	app := NewApp(&cfg)
 
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
 	srv := &http.Server{
 		Addr:    cfg.Address,
 		Handler: getRouter(app),
 	}
 
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		if err := srv.ListenAndServe(); err != nil {
-			log.Fatalf("Failed to listen and serve: %+v", err)
+			cancel()
 		}
 	}()
 
-	go func() {
-		<-ctx.Done()
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
-		if err := srv.Shutdown(ctx); err != nil {
-			log.Fatalf("Failed to listen and serve: %+v", err)
-		}
-	}()
+	select {
+	case <-ctx.Done():
+		log.Println("context was canceled")
+	case s := <-quit:
+		log.Println("signal was provided: ", s)
+		cancel()
+	}
 
 	return nil
 }
