@@ -11,11 +11,10 @@ import (
 	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"log"
 	"net/http"
-	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
 type App struct {
@@ -48,8 +47,8 @@ func LaunchServer() error {
 
 	app := NewApp(&cfg)
 
-	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
-	defer shutdown()
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
 	srv := &http.Server{
 		Addr:    cfg.Address,
@@ -57,14 +56,16 @@ func LaunchServer() error {
 	}
 
 	if err := srv.ListenAndServe(); err != nil {
-		if err = srv.Shutdown(ctx); err != nil {
-			return err
-		}
+		log.Fatalf("Failed to listen and serve: %+v", err)
 	}
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
+	go func() {
+		<-ctx.Done()
+
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Fatalf("Failed to listen and serve: %+v", err)
+		}
+	}()
 
 	return nil
 }
