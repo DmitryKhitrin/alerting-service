@@ -55,9 +55,11 @@ func LaunchServer() error {
 		Handler: getRouter(app),
 	}
 
-	if err := srv.ListenAndServe(); err != nil {
-		log.Fatalf("Failed to listen and serve: %+v", err)
-	}
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Fatalf("Failed to listen and serve: %+v", err)
+		}
+	}()
 
 	go func() {
 		<-ctx.Done()
