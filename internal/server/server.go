@@ -77,5 +77,5 @@ func LaunchServer() error {
 		cancel()
 	}
 
-	return nil
+	return srv.Shutdown(ctx)
 }
