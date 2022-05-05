@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -60,7 +61,7 @@ func LaunchServer() error {
 	}()
 
 	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt, os.Kill)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
 	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
