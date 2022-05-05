@@ -3,14 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/DmitryKhitrin/alerting-service/internal/server"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/config"
-	"github.com/DmitryKhitrin/alerting-service/internal/server/metrics"
-	metricsHandler "github.com/DmitryKhitrin/alerting-service/internal/server/metrics/handler"
-	metricsService "github.com/DmitryKhitrin/alerting-service/internal/server/metrics/service"
-	"github.com/DmitryKhitrin/alerting-service/internal/server/repositories"
 	"github.com/caarlos0/env/v6"
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
 	"log"
 	"net/http"
 	"os"
@@ -20,27 +15,6 @@ import (
 	"time"
 )
 
-type App struct {
-	metricsService metrics.Service
-}
-
-func NewApp(cfg *config.Config) *App {
-	repository := repositories.NewLocalStorageRepository(cfg)
-
-	return &App{
-		metricsService: metricsService.NewMetricsService(repository),
-	}
-}
-
-func getRouter(a *App) *chi.Mux {
-	router := chi.NewRouter()
-	router.Use(middleware.Logger)
-	router.Use(middleware.Recoverer)
-
-	metricsHandler.RegisterHTTPEndpoints(router, a.metricsService)
-	return router
-}
-
 func main() {
 
 	cfg := config.Config{}
@@ -48,13 +22,13 @@ func main() {
 		fmt.Printf("%+v\n", err)
 	}
 
-	app := NewApp(&cfg)
+	app := server.NewApp(&cfg)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
 	srv := &http.Server{
 		Addr:    cfg.Address,
-		Handler: getRouter(app),
+		Handler: server.GetRouter(app),
 	}
 
 	wg := &sync.WaitGroup{}
