@@ -11,7 +11,6 @@ import (
 	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -41,31 +40,31 @@ func getRouter(a *App) *chi.Mux {
 }
 
 func LaunchServer() error {
-
 	cfg := config.Config{}
 	if err := env.Parse(&cfg); err != nil {
 		fmt.Printf("%+v\n", err)
+		return err
 	}
 
 	app := NewApp(&cfg)
+
+	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdown()
 
 	srv := &http.Server{
 		Addr:    cfg.Address,
 		Handler: getRouter(app),
 	}
 
-	go func() {
-		if err := srv.ListenAndServe(); err != nil {
-			log.Fatalf("Failed to listen and serve: %+v", err)
+	if err := srv.ListenAndServe(); err != nil {
+		if err = srv.Shutdown(ctx); err != nil {
+			return err
 		}
-	}()
+	}
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
-	defer shutdown()
-
-	return srv.Shutdown(ctx)
+	return nil
 }
