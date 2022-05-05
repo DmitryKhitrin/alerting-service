@@ -38,7 +38,7 @@ func TestMetricServer(t *testing.T) {
 	}
 	// Mock App in future
 	app := NewApp(&cfg)
-	r := GetRouter(app)
+	r := getRouter(app)
 
 	server := httptest.NewServer(r)
 	defer server.Close()
