@@ -61,7 +61,7 @@ func LaunchServer() error {
 	}()
 
 	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
 	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
