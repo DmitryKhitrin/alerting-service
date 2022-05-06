@@ -77,5 +77,7 @@ func LaunchServer() error {
 		cancel()
 	}
 
+	wg.Wait()
+
 	return nil
 }
