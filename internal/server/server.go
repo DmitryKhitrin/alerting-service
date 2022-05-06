@@ -15,7 +15,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 )
@@ -57,10 +56,7 @@ func LaunchServer() error {
 		Handler: getRouter(app),
 	}
 
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
 	go func() {
-		defer wg.Done()
 		if err := srv.ListenAndServe(); err != nil {
 			cancel()
 		}
@@ -76,8 +72,6 @@ func LaunchServer() error {
 		log.Println("signal was provided: ", s)
 		cancel()
 	}
-
-	wg.Wait()
 
 	return nil
 }
