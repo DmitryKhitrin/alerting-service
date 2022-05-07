@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
@@ -14,6 +15,15 @@ import (
 func (l *LocalStorageRepository) TryRestore() error {
 	if !l.cfg.ShouldRestore || l.cfg.FileName == "" {
 		return nil
+	}
+
+	files, err := ioutil.ReadDir("/tmp/")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, file := range files {
+		fmt.Println(file.Name(), file.IsDir())
 	}
 
 	file, err := os.Open(l.cfg.FileName)
