@@ -53,9 +53,11 @@ func (l *LocalStorageRepository) TryRestore() error {
 
 func (l *LocalStorageRepository) SaveToFile() error {
 	if l.cfg.FileName == "" {
-		fmt.Println("trying to store metrics with empty file")
+		log.Println("trying to store metrics with empty file")
 		return nil
 	}
+
+	log.Println("start saving")
 
 	file, err := os.Create(l.cfg.FileName)
 	if err != nil {
@@ -74,6 +76,8 @@ func (l *LocalStorageRepository) SaveToFile() error {
 	l.mutex.RLock()
 	err = encoder.Encode(l.repository)
 	l.mutex.RUnlock()
+
+	log.Println("saved")
 	return err
 }
 
