@@ -70,8 +70,10 @@ func (l *LocalStorageRepository) SaveToFile() error {
 func (l *LocalStorageRepository) RunDataDumper() {
 
 	log.Println("save", l.cfg.StoreInterval, l.cfg.FileName)
-	if l.cfg.StoreInterval.Seconds() != 0 && l.cfg.FileName != "" {
+	log.Println("interval", l.cfg.StoreInterval.Seconds(), l.cfg.FileName)
 
+	if l.cfg.StoreInterval.Seconds() != 0 && l.cfg.FileName != "" {
+		log.Println("start saving")
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 		defer stop()
 
