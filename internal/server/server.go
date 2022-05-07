@@ -46,6 +46,7 @@ func LaunchServer() error {
 	if err := env.Parse(&cfg); err != nil {
 		fmt.Printf("%+v\n", err)
 	}
+	log.Println(cfg)
 
 	app := NewApp(&cfg)
 

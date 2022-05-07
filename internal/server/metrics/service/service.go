@@ -42,7 +42,7 @@ func (m MetricsService) GetMetric(metric *common.Metrics) (interface{}, *common.
 	case common.Gauge, common.Counter:
 		value, err := m.repository.GetValue(metric.MType, metric.ID)
 		if err != nil {
-			return nil, common.NewNotFoundError("")
+			return nil, common.NewNotFoundError("metric not found")
 		}
 		switch metric.MType {
 		case common.Gauge:

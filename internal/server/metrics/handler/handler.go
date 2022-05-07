@@ -106,19 +106,22 @@ func (h *Handler) JSONGetMetricHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
+
+	log.Println("Get value agent", &metric)
+
 	_, sErr := h.service.GetMetric(&metric)
 
 	if sErr != nil {
 		http.Error(w, sErr.Text, sErr.Status)
 		return
 	}
+
+	log.Println("Get value agent result", &metric)
 	data, err := json.Marshal(&metric)
 	if err != nil {
 		log.Println("parsing error")
 		return
 	}
-
-	log.Println("get", &metric)
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
