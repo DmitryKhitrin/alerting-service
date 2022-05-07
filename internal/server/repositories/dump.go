@@ -69,6 +69,7 @@ func (l *LocalStorageRepository) SaveToFile() error {
 
 func (l *LocalStorageRepository) RunDataDumper() {
 
+	log.Println("save", l.cfg.StoreInterval, l.cfg.FileName)
 	if l.cfg.StoreInterval.Seconds() != 0 && l.cfg.FileName != "" {
 
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
@@ -82,8 +83,9 @@ func (l *LocalStorageRepository) RunDataDumper() {
 				case <-ticker.C:
 					err := l.SaveToFile()
 					if err != nil {
-						log.Println(err)
+						log.Println("not saved in loop", err)
 					}
+					log.Println("saved")
 				case <-ctx.Done():
 					ticker.Stop()
 					return
