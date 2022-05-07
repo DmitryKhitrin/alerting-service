@@ -56,7 +56,7 @@ func (l *LocalStorageRepository) SetValue(name string, value interface{}) {
 	if l.cfg.StoreInterval.Seconds() == 0 {
 		err := l.SaveToFile()
 		if err != nil {
-			fmt.Println("error saving to file", err)
+			log.Println("error saving to file", err)
 		}
 	}
 }

@@ -18,14 +18,15 @@ func (l *LocalStorageRepository) TryRestore() error {
 
 	file, err := os.Open(l.cfg.FileName)
 	if err != nil {
-		log.Println("error while reading file")
+		log.Println("error while reading file", err)
 		return err
 	}
 
 	defer func() {
 		err := file.Close()
+		log.Println("file closed")
 		if err != nil {
-			fmt.Println(err)
+			log.Println("error while closing file", err)
 		}
 	}()
 
@@ -33,7 +34,7 @@ func (l *LocalStorageRepository) TryRestore() error {
 
 	err = decoder.Decode(&l.repository)
 	if err != nil {
-		log.Println("error while decoding file")
+		log.Println("error while decoding file", err)
 		return err
 	}
 
