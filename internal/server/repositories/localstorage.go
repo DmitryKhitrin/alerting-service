@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/DmitryKhitrin/alerting-service/internal/common"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/config"
+	"log"
 	"sync"
 )
 
@@ -40,6 +41,7 @@ func (l *LocalStorageRepository) setCounter(name string, value int64) {
 }
 
 func (l *LocalStorageRepository) SetValue(name string, value interface{}) {
+	log.Println("set repo", &l.repository)
 	l.mutex.Lock()
 	switch v2 := value.(type) {
 	case *int64:
@@ -77,6 +79,7 @@ func (l *LocalStorageRepository) getCounter(name string) (int64, error) {
 }
 
 func (l *LocalStorageRepository) GetValue(metric string, name string) (interface{}, error) {
+	log.Println("get repo", &l.repository)
 	l.mutex.RLock()
 	defer l.mutex.RUnlock()
 	switch metric {

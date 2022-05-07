@@ -56,6 +56,7 @@ func (h *Handler) JSONUpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 	var metric common.Metrics
 	err = json.Unmarshal(b, &metric)
+	log.Println("update", &metric)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -91,7 +92,7 @@ func (h *Handler) GetMetricHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) JSONPostMetricHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) JSONGetMetricHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
@@ -116,6 +117,8 @@ func (h *Handler) JSONPostMetricHandler(w http.ResponseWriter, r *http.Request) 
 		log.Println("parsing error")
 		return
 	}
+
+	log.Println("get", &metric)
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
