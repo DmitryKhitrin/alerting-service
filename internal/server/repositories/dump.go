@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
@@ -17,16 +16,7 @@ func (l *LocalStorageRepository) TryRestore() error {
 		return nil
 	}
 
-	files, err := ioutil.ReadDir("/tmp/")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, file := range files {
-		fmt.Println(file.Name(), file.IsDir())
-	}
-
-	file, err := os.Open(l.cfg.FileName)
+	file, err := os.OpenFile(l.cfg.FileName, os.O_RDONLY|os.O_CREATE, 0644)
 	if err != nil {
 		log.Println("error while reading file", err)
 		return err
@@ -59,7 +49,7 @@ func (l *LocalStorageRepository) SaveToFile() error {
 
 	log.Println("start saving")
 
-	file, err := os.Create(l.cfg.FileName)
+	file, err := os.OpenFile(l.cfg.FileName, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return nil
 	}
@@ -75,6 +65,9 @@ func (l *LocalStorageRepository) SaveToFile() error {
 
 	l.mutex.RLock()
 	err = encoder.Encode(l.repository)
+	if err != nil {
+		log.Println("error while saving file")
+	}
 	l.mutex.RUnlock()
 
 	log.Println("saved")
@@ -82,14 +75,8 @@ func (l *LocalStorageRepository) SaveToFile() error {
 }
 
 func (l *LocalStorageRepository) RunDataDumper() {
-
-	log.Println("save", l.cfg.StoreInterval, l.cfg.FileName)
-	log.Println("interval", l.cfg.StoreInterval.Seconds(), l.cfg.FileName)
-
 	if l.cfg.StoreInterval.Seconds() != 0 && l.cfg.FileName != "" {
-		log.Println("start saving")
-		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
-		defer stop()
+		ctx, _ := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 
 		metricSaver := func(storeInterval time.Duration) {
 			ticker := time.NewTicker(storeInterval)
@@ -101,7 +88,6 @@ func (l *LocalStorageRepository) RunDataDumper() {
 					if err != nil {
 						log.Println("not saved in loop", err)
 					}
-					log.Println("saved")
 				case <-ctx.Done():
 					ticker.Stop()
 					return

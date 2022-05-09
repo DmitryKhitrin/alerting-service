@@ -109,7 +109,6 @@ func (h *Handler) JSONGetMetricHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("Get value agent", &metric)
 	log.Println("Get value agent", &metric.ID)
-	log.Println("Get value agent", &metric.MType)
 
 	_, sErr := h.service.GetMetric(&metric)
 

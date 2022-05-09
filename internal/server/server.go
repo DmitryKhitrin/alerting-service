@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/config"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/metrics"
 	metricsHandler "github.com/DmitryKhitrin/alerting-service/internal/server/metrics/handler"
@@ -41,10 +40,9 @@ func getRouter(a *App) *chi.Mux {
 }
 
 func LaunchServer() error {
-
 	cfg := config.Config{}
 	if err := env.Parse(&cfg); err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Printf("%+v\n", err)
 	}
 	log.Println(cfg)
 
@@ -60,12 +58,11 @@ func LaunchServer() error {
 			log.Fatalf("Failed to listen and serve: %+v", err)
 		}
 	}()
-
+	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdown()
 
 	return srv.Shutdown(ctx)
