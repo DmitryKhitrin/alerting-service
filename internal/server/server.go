@@ -2,7 +2,7 @@ package server
 
 import (
 	"context"
-	"fmt"
+	"github.com/DmitryKhitrin/alerting-service/internal/server/config"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/metrics"
 	metricsHandler "github.com/DmitryKhitrin/alerting-service/internal/server/metrics/handler"
 	metricsService "github.com/DmitryKhitrin/alerting-service/internal/server/metrics/service"
@@ -14,19 +14,16 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 )
-
-type config struct {
-	Address string `env:"ADDRESS" envDefault:"localhost:8080"`
-}
 
 type App struct {
 	metricsService metrics.Service
 }
 
-func NewApp() *App {
-	repository := repositories.NewLocalStorageRepository()
+func NewApp(cfg *config.Config) *App {
+	repository := repositories.NewLocalStorageRepository(cfg)
 
 	return &App{
 		metricsService: metricsService.NewMetricsService(repository),
@@ -43,14 +40,13 @@ func getRouter(a *App) *chi.Mux {
 }
 
 func LaunchServer() error {
-	app := NewApp()
-
-	cfg := config{}
+	cfg := config.Config{}
 	if err := env.Parse(&cfg); err != nil {
-		fmt.Printf("%+v\n", err)
+		log.Printf("%+v\n", err)
 	}
+	log.Println(cfg)
 
-	fmt.Println(cfg.Address)
+	app := NewApp(&cfg)
 
 	srv := &http.Server{
 		Addr:    cfg.Address,
@@ -64,7 +60,7 @@ func LaunchServer() error {
 	}()
 
 	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt, os.Interrupt)
+	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
 	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)

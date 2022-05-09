@@ -42,7 +42,7 @@ func (m MetricsService) GetMetric(metric *common.Metrics) (interface{}, *common.
 	case common.Gauge, common.Counter:
 		value, err := m.repository.GetValue(metric.MType, metric.ID)
 		if err != nil {
-			return nil, common.NewNotFoundError("")
+			return nil, common.NewNotFoundError("metric not found")
 		}
 		switch metric.MType {
 		case common.Gauge:
@@ -59,7 +59,7 @@ func (m MetricsService) GetMetric(metric *common.Metrics) (interface{}, *common.
 }
 
 func (m MetricsService) GetTemplateWriter() (func(w http.ResponseWriter) error, error) {
-	gauge, counter := m.repository.GetAll()
+	data := m.repository.GetAll()
 	indexPage, err := os.ReadFile("internal/server/metrics/static/index.html")
 	indexTemplate := template.Must(template.New("").Parse(string(indexPage)))
 
@@ -71,8 +71,7 @@ func (m MetricsService) GetTemplateWriter() (func(w http.ResponseWriter) error, 
 	}
 
 	tmp := make(map[string]interface{})
-	tmp[common.Gauge] = gauge
-	tmp[common.Counter] = counter
+	tmp["data"] = data
 
 	return func(w http.ResponseWriter) error {
 		err = indexTemplate.Execute(w, tmp)

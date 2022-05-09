@@ -7,6 +7,6 @@ import (
 
 func main() {
 	if err := server.LaunchServer(); err != nil {
-		log.Fatalf("%s", err.Error())
+		log.Fatalf("Server Shutdown Failed: %s", err.Error())
 	}
 }

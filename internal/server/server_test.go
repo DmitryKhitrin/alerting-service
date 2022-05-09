@@ -2,6 +2,9 @@ package server
 
 import (
 	"bytes"
+	"fmt"
+	"github.com/DmitryKhitrin/alerting-service/internal/server/config"
+	"github.com/caarlos0/env/v6"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
@@ -28,8 +31,13 @@ func TestMetricServer(t *testing.T) {
 		code int
 		body []string
 	}
+
+	cfg := config.Config{}
+	if err := env.Parse(&cfg); err != nil {
+		fmt.Printf("%+v\n", err)
+	}
 	// Mock App in future
-	app := NewApp()
+	app := NewApp(&cfg)
 	r := getRouter(app)
 
 	server := httptest.NewServer(r)
@@ -85,31 +93,11 @@ func TestMetricServer(t *testing.T) {
 			expected:    want{code: 200},
 		},
 		{
-			description: "200 Get Counter",
-			requestURL:  "/value/counter/PollCount",
-			method:      http.MethodGet,
-			body:        []byte(``),
-			expected: want{
-				code: 200,
-				body: []string{"1"},
-			},
-		},
-		{
 			description: "200 Success Counter",
 			requestURL:  "/update/counter/PollCount/10",
 			method:      http.MethodPost,
 			body:        []byte(``),
 			expected:    want{code: 200},
-		},
-		{
-			description: "200 Get Counter plus ten",
-			requestURL:  "/value/counter/PollCount",
-			method:      http.MethodGet,
-			body:        []byte(``),
-			expected: want{
-				code: 200,
-				body: []string{"11"},
-			},
 		},
 		{
 			description: "400 Parse string Gauge",

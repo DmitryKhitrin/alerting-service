@@ -4,78 +4,92 @@ import (
 	"errors"
 	"fmt"
 	"github.com/DmitryKhitrin/alerting-service/internal/common"
+	"github.com/DmitryKhitrin/alerting-service/internal/server/config"
+	"log"
 	"sync"
 )
 
 type LocalStorageRepository struct {
-	mutex   sync.RWMutex
-	gauge   map[string]float64
-	counter map[string]int64
+	mutex      *sync.RWMutex
+	repository map[string]float64
+	cfg        *config.Config
 }
 
-var localStorageRepository = LocalStorageRepository{
-	gauge:   make(map[string]float64),
-	counter: make(map[string]int64),
+func NewLocalStorageRepository(cfg *config.Config) *LocalStorageRepository {
+
+	repository := &LocalStorageRepository{
+		mutex:      &sync.RWMutex{},
+		repository: make(map[string]float64),
+		cfg:        cfg,
+	}
+	repository.TryRestore()
+	repository.RunDataDumper()
+	return repository
 }
 
-func NewLocalStorageRepository() *LocalStorageRepository {
-	return &localStorageRepository
+func (l *LocalStorageRepository) setGauge(name string, value float64) {
+	l.repository[name] = value
 }
 
-func (s *LocalStorageRepository) setGauge(name string, value float64) {
-	localStorageRepository.gauge[name] = value
-}
+func (l *LocalStorageRepository) setCounter(name string, value int64) {
 
-func (s *LocalStorageRepository) setCounter(name string, value int64) {
-	if val, ok := localStorageRepository.counter[name]; ok {
-		localStorageRepository.counter[name] = val + value
+	if val, ok := l.repository[name]; ok {
+		l.repository[name] = val + float64(value)
 	} else {
-		localStorageRepository.counter[name] = value
+		l.repository[name] = float64(value)
 	}
 }
 
-func (s *LocalStorageRepository) SetValue(name string, value interface{}) {
-	s.mutex.Lock()
+func (l *LocalStorageRepository) SetValue(name string, value interface{}) {
+	l.mutex.Lock()
 	switch v2 := value.(type) {
 	case *int64:
-		s.setCounter(name, *v2)
+		l.setCounter(name, *v2)
 	case *float64:
-		s.setGauge(name, *v2)
+		l.setGauge(name, *v2)
 	default:
 	}
 	fmt.Println()
-	s.mutex.Unlock()
+	l.mutex.Unlock()
+
+	if l.cfg.StoreInterval.Seconds() == 0 {
+		err := l.SaveToFile()
+		if err != nil {
+			log.Println("error saving to file", err)
+		}
+	}
 }
 
-func (s *LocalStorageRepository) getGauge(name string) (float64, error) {
-	value, ok := localStorageRepository.gauge[name]
+func (l *LocalStorageRepository) getGauge(name string) (float64, error) {
+	value, ok := l.repository[name]
 	if !ok {
 		return value, errors.New("invalid metric name")
 	}
 	return value, nil
 }
 
-func (s *LocalStorageRepository) getCounter(name string) (int64, error) {
-	value, ok := localStorageRepository.counter[name]
+func (l *LocalStorageRepository) getCounter(name string) (int64, error) {
+	v, ok := l.repository[name]
 	if !ok {
-		return value, errors.New("invalid metric name")
+		return 0, errors.New("invalid metric name")
 	}
+	value := int64(v)
 	return value, nil
 }
 
-func (s *LocalStorageRepository) GetValue(metric string, name string) (interface{}, error) {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+func (l *LocalStorageRepository) GetValue(metric string, name string) (interface{}, error) {
+	l.mutex.RLock()
+	defer l.mutex.RUnlock()
 	switch metric {
 	case common.Gauge:
-		return s.getGauge(name)
+		return l.getGauge(name)
 	case common.Counter:
-		return s.getCounter(name)
+		return l.getCounter(name)
 	default:
 		return "", errors.New("invalid metric type")
 	}
 }
 
-func (s *LocalStorageRepository) GetAll() (*map[string]float64, *map[string]int64) {
-	return &localStorageRepository.gauge, &localStorageRepository.counter
+func (l *LocalStorageRepository) GetAll() *map[string]float64 {
+	return &l.repository
 }
