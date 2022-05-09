@@ -56,7 +56,6 @@ func (h *Handler) JSONUpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 	var metric common.Metrics
 	err = json.Unmarshal(b, &metric)
-	log.Println("update", &metric)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -107,9 +106,6 @@ func (h *Handler) JSONGetMetricHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("Get value agent", &metric)
-	log.Println("Get value agent", &metric.ID)
-
 	_, sErr := h.service.GetMetric(&metric)
 
 	if sErr != nil {
@@ -117,10 +113,9 @@ func (h *Handler) JSONGetMetricHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("Get value agent result", &metric)
 	data, err := json.Marshal(&metric)
 	if err != nil {
-		log.Println("parsing error")
+		log.Println("parsing error", err)
 		return
 	}
 

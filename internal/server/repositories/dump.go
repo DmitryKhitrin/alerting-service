@@ -24,7 +24,6 @@ func (l *LocalStorageRepository) TryRestore() error {
 
 	defer func() {
 		err := file.Close()
-		log.Println("file closed")
 		if err != nil {
 			log.Println("error while closing file", err)
 		}
@@ -47,8 +46,6 @@ func (l *LocalStorageRepository) SaveToFile() error {
 		return nil
 	}
 
-	log.Println("start saving")
-
 	file, err := os.OpenFile(l.cfg.FileName, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return nil
@@ -69,8 +66,6 @@ func (l *LocalStorageRepository) SaveToFile() error {
 		log.Println("error while saving file")
 	}
 	l.mutex.RUnlock()
-
-	log.Println("saved")
 	return err
 }
 
@@ -86,7 +81,7 @@ func (l *LocalStorageRepository) RunDataDumper() {
 				case <-ticker.C:
 					err := l.SaveToFile()
 					if err != nil {
-						log.Println("not saved in loop", err)
+						log.Println("error while saving by interval", err)
 					}
 				case <-ctx.Done():
 					ticker.Stop()
