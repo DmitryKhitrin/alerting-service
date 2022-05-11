@@ -2,12 +2,12 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/config"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/metrics"
 	metricsHandler "github.com/DmitryKhitrin/alerting-service/internal/server/metrics/handler"
 	metricsService "github.com/DmitryKhitrin/alerting-service/internal/server/metrics/service"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/repositories"
-	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"log"
@@ -40,13 +40,9 @@ func getRouter(a *App) *chi.Mux {
 }
 
 func LaunchServer() error {
-	cfg := config.Config{}
-	if err := env.Parse(&cfg); err != nil {
-		log.Printf("%+v\n", err)
-	}
-	log.Println(cfg)
-
-	app := NewApp(&cfg)
+	cfg := config.NewSeverConfig()
+	fmt.Println(cfg)
+	app := NewApp(cfg)
 
 	srv := &http.Server{
 		Addr:    cfg.Address,
