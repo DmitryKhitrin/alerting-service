@@ -33,6 +33,7 @@ func getRouter(a *App) *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
+	router.Use(middleware.Compress(5))
 
 	metricsHandler.RegisterHTTPEndpoints(router, a.metricsService)
 	return router
