@@ -1,10 +1,8 @@
 package agent
 
 import (
-	"fmt"
 	"github.com/DmitryKhitrin/alerting-service/internal/agent/config"
 	"github.com/DmitryKhitrin/alerting-service/internal/agent/scheduller"
-	"github.com/caarlos0/env/v6"
 	"os"
 	"os/signal"
 	"syscall"
@@ -23,9 +21,6 @@ func RunSendStats(address string, duration time.Duration) {
 
 func LaunchAgent() {
 	cfg := config.NewAgentConfig()
-	if err := env.Parse(&cfg); err != nil {
-		fmt.Printf("%+v\n", err)
-	}
 
 	go RunCollectStats(cfg.PollInterval)
 	go RunSendStats(cfg.Address, cfg.ReportInterval)

@@ -23,7 +23,6 @@ type Config struct {
 
 func NewSeverConfig() *Config {
 	return Config{}.Init()
-
 }
 
 func (cfg Config) Init() *Config {
@@ -34,11 +33,9 @@ func (cfg Config) Init() *Config {
 	flag.Parse()
 
 	if err := env.Parse(&cfg); err != nil {
-		log.Println(cfg, "мой конфижек с ошибкой")
+		log.Println(cfg, "cfg with error")
 		panic(err)
 	}
-
-	log.Println(cfg, "мой конфижек")
-
+	log.Println(cfg, "cfg")
 	return &cfg
 }

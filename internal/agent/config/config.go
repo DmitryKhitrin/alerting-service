@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"github.com/caarlos0/env/v6"
+	"log"
 	"time"
 )
 
@@ -23,7 +24,6 @@ func NewAgentConfig() *Config {
 }
 
 func (cfg Config) Init() *Config {
-
 	flag.StringVar(&cfg.Address, "a", DefaultHost, "agent address")
 	flag.DurationVar(&cfg.PollInterval, "p", PollIntervalDefault, "report interval")
 	flag.DurationVar(&cfg.ReportInterval, "r", ReportIntervalDefault, "report interval")
@@ -32,6 +32,6 @@ func (cfg Config) Init() *Config {
 	if err := env.Parse(&cfg); err != nil {
 		panic(err)
 	}
-
+	log.Println(cfg, "cfg")
 	return &cfg
 }
