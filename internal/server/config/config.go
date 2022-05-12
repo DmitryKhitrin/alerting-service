@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"github.com/caarlos0/env/v6"
+	"log"
 	"time"
 )
 
@@ -33,8 +34,11 @@ func (cfg Config) Init() *Config {
 	flag.Parse()
 
 	if err := env.Parse(&cfg); err != nil {
+		log.Println(cfg, "мой конфижек с ошибкой")
 		panic(err)
 	}
+
+	log.Println(cfg, "мой конфижек")
 
 	return &cfg
 }

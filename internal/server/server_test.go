@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/config"
 	"github.com/caarlos0/env/v6"
@@ -11,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func request(t *testing.T, ts *httptest.Server, method string, query string, body *bytes.Buffer) (*http.Response, string) {
@@ -32,12 +34,15 @@ func TestMetricServer(t *testing.T) {
 		body []string
 	}
 
+	ctx, stop := context.WithTimeout(context.Background(), 5*time.Second)
+	defer stop()
+
 	cfg := config.Config{}
 	if err := env.Parse(&cfg); err != nil {
 		fmt.Printf("%+v\n", err)
 	}
 	// Mock App in future
-	app := NewApp(&cfg)
+	app := NewApp(&ctx, &cfg)
 	r := getRouter(app)
 
 	server := httptest.NewServer(r)

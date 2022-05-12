@@ -9,12 +9,13 @@ import (
 const (
 	ReportIntervalDefault = time.Second * 10
 	PollIntervalDefault   = time.Second * 2
+	DefaultHost           = "localhost:8080"
 )
 
 type Config struct {
-	Address        string        `env:"ADDRESS" envDefault:"localhost:8080"`
-	PollInterval   time.Duration `env:"POLL_INTERVAL" envDefault:"2s"`
-	ReportInterval time.Duration `env:"REPORT_INTERVAL" envDefault:"10s"`
+	Address        string        `env:"ADDRESS"`
+	PollInterval   time.Duration `env:"POLL_INTERVAL"`
+	ReportInterval time.Duration `env:"REPORT_INTERVAL"`
 }
 
 func NewAgentConfig() *Config {
@@ -23,7 +24,7 @@ func NewAgentConfig() *Config {
 
 func (cfg Config) Init() *Config {
 
-	flag.StringVar(&cfg.Address, "a", "localhost:8080", "agent address")
+	flag.StringVar(&cfg.Address, "a", DefaultHost, "agent address")
 	flag.DurationVar(&cfg.PollInterval, "p", PollIntervalDefault, "report interval")
 	flag.DurationVar(&cfg.ReportInterval, "r", ReportIntervalDefault, "report interval")
 	flag.Parse()

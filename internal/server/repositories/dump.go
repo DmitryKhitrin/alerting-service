@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 )
 
@@ -69,9 +67,8 @@ func (l *LocalStorageRepository) SaveToFile() error {
 	return err
 }
 
-func (l *LocalStorageRepository) RunDataDumper() {
+func (l *LocalStorageRepository) RunDataDumper(ctx context.Context) {
 	if l.cfg.StoreInterval.Seconds() != 0 && l.cfg.FileName != "" {
-		ctx, _ := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 
 		metricSaver := func(storeInterval time.Duration) {
 			ticker := time.NewTicker(storeInterval)
