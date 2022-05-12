@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/DmitryKhitrin/alerting-service/internal/common"
@@ -15,15 +16,14 @@ type LocalStorageRepository struct {
 	cfg        *config.Config
 }
 
-func NewLocalStorageRepository(cfg *config.Config) *LocalStorageRepository {
-
+func NewLocalStorageRepository(ctx *context.Context, cfg *config.Config) *LocalStorageRepository {
 	repository := &LocalStorageRepository{
 		mutex:      &sync.RWMutex{},
 		repository: make(map[string]float64),
 		cfg:        cfg,
 	}
 	repository.TryRestore()
-	repository.RunDataDumper()
+	repository.RunDataDumper(*ctx)
 	return repository
 }
 

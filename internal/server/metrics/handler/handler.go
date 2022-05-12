@@ -109,6 +109,8 @@ func (h *Handler) JSONGetMetricHandler(w http.ResponseWriter, r *http.Request) {
 	_, sErr := h.service.GetMetric(&metric)
 
 	if sErr != nil {
+		log.Println(metric)
+		log.Println(&err)
 		http.Error(w, sErr.Text, sErr.Status)
 		return
 	}

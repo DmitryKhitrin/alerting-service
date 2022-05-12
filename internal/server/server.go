@@ -2,12 +2,12 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/config"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/metrics"
 	metricsHandler "github.com/DmitryKhitrin/alerting-service/internal/server/metrics/handler"
 	metricsService "github.com/DmitryKhitrin/alerting-service/internal/server/metrics/service"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/repositories"
-	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"log"
@@ -22,8 +22,8 @@ type App struct {
 	metricsService metrics.Service
 }
 
-func NewApp(cfg *config.Config) *App {
-	repository := repositories.NewLocalStorageRepository(cfg)
+func NewApp(ctx *context.Context, cfg *config.Config) *App {
+	repository := repositories.NewLocalStorageRepository(ctx, cfg)
 
 	return &App{
 		metricsService: metricsService.NewMetricsService(repository),
@@ -40,13 +40,13 @@ func getRouter(a *App) *chi.Mux {
 }
 
 func LaunchServer() error {
-	cfg := config.Config{}
-	if err := env.Parse(&cfg); err != nil {
-		log.Printf("%+v\n", err)
-	}
-	log.Println(cfg)
 
-	app := NewApp(&cfg)
+	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdown()
+
+	cfg := config.NewSeverConfig()
+	fmt.Println(cfg)
+	app := NewApp(&ctx, cfg)
 
 	srv := &http.Server{
 		Addr:    cfg.Address,
@@ -58,13 +58,9 @@ func LaunchServer() error {
 			log.Fatalf("Failed to listen and serve: %+v", err)
 		}
 	}()
-
 	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
 	<-quit
-
-	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)
-	defer shutdown()
 
 	return srv.Shutdown(ctx)
 }
