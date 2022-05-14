@@ -9,7 +9,6 @@ import (
 	"github.com/DmitryKhitrin/alerting-service/internal/server/repositories"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	compress "github.com/go-chi/chi/v5/middleware"
 	"log"
 	"net/http"
 	"os"
@@ -34,7 +33,7 @@ func getRouter(a *App) *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
-	router.Use(compress.Compress(5))
+	router.Use(middleware.Compress(5))
 
 	metricsHandler.RegisterHTTPEndpoints(router, a.metricsService)
 	return router
