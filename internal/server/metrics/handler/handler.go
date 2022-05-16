@@ -22,7 +22,7 @@ func NewHandler(service metrics.Service) *Handler {
 	}
 }
 
-func (h *Handler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UpdatePlain(w http.ResponseWriter, r *http.Request) {
 	mType := chi.URLParam(r, "type")
 	name := chi.URLParam(r, "name")
 	value := chi.URLParam(r, "value")
@@ -46,7 +46,7 @@ func (h *Handler) UpdateHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *Handler) JSONUpdateHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UpdateJSON(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
@@ -71,7 +71,7 @@ func (h *Handler) JSONUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *Handler) GetMetricHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetPlain(w http.ResponseWriter, r *http.Request) {
 	mType := chi.URLParam(r, "type")
 	name := chi.URLParam(r, "name")
 
@@ -85,13 +85,11 @@ func (h *Handler) GetMetricHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := w.Write([]byte(fmt.Sprint(val)))
-	if err != nil {
-		return
-	}
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	fmt.Fprintln(w, fmt.Sprint(val))
 }
 
-func (h *Handler) JSONGetMetricHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetJSON(w http.ResponseWriter, r *http.Request) {
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {

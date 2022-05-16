@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/config"
 	"github.com/DmitryKhitrin/alerting-service/internal/server/metrics"
 	metricsHandler "github.com/DmitryKhitrin/alerting-service/internal/server/metrics/handler"
@@ -34,6 +33,7 @@ func getRouter(a *App) *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
+	router.Use(middleware.Compress(5))
 
 	metricsHandler.RegisterHTTPEndpoints(router, a.metricsService)
 	return router
@@ -45,7 +45,6 @@ func LaunchServer() error {
 	defer shutdown()
 
 	cfg := config.NewSeverConfig()
-	fmt.Println(cfg)
 	app := NewApp(&ctx, cfg)
 
 	srv := &http.Server{

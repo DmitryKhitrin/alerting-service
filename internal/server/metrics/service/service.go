@@ -64,16 +64,14 @@ func (m MetricsService) GetTemplateWriter() (func(w http.ResponseWriter) error, 
 	indexTemplate := template.Must(template.New("").Parse(string(indexPage)))
 
 	if err != nil {
-		_, err = os.ReadFile("index.html")
-		if err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	tmp := make(map[string]interface{})
 	tmp["data"] = data
 
 	return func(w http.ResponseWriter) error {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		err = indexTemplate.Execute(w, tmp)
 		return err
 	}, nil
